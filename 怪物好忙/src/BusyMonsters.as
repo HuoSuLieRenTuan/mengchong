@@ -40,6 +40,13 @@ package{
 			trace("需要教学系统（参考宝石迷阵和Candy Crush Saga）。");
 			trace("Tile不要用跳帧的形式换图。");
 			
+			this.addEventListener(Event.ENTER_FRAME,enterFrame);
+		}
+		
+		private function enterFrame(...args):void{
+			
+			this.removeEventListener(Event.ENTER_FRAME,enterFrame);
+			
 			outputMsg=_outputMsg;
 			
 			this.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR,uncaughtError);
@@ -83,14 +90,15 @@ package{
 			stage.align=StageAlign.TOP_LEFT;
 			stage.scaleMode=StageScaleMode.NO_SCALE;
 			
-			//trace("stage.stageWidth="+stage.stageWidth+",stage.stageHeight="+stage.stageHeight);
-			//trace("Capabilities.screenDPI="+Capabilities.screenDPI);
 			this.addChild(main=new Main());
-			if(Capabilities.screenDPI==72){//pc?
-				main.scaleX=main.scaleY=Capabilities.screenDPI*0.012;
-			}else{
-				main.scaleX=main.scaleY=Capabilities.screenDPI*0.006;
-			}
+			
+			//不是很准确地区分PC和移动设备
+			if(Capabilities.screenDPI>72){
+				//移动设备
+				main.scaleX=main.scaleY=Capabilities.screenDPI/96;
+			}//else{
+			//	PC
+			//}
 			
 			this.tabChildren=false;
 			var i:int=main.numChildren;
@@ -115,6 +123,8 @@ package{
 			currPage.clip.addEventListener(GameEvent.START_GAME,startGame);
 			
 			startGame();
+			
+			outputMsg(stage.stageWidth+"x"+stage.stageHeight+"，Capabilities.screenDPI="+Capabilities.screenDPI+"，main.transform.matrix="+main.transform.matrix);
 			
 		}
 		

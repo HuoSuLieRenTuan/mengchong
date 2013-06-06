@@ -25,9 +25,9 @@ package busymonsters{
 			
 			super(new assets.PageGame());
 			
-			var w:int=6;
-			var h:int=4;
-			var d:int=100;
+			var w:int=10;
+			var h:int=10;
+			var d:int=50;
 			map=new Array(h);
 			for(var y:int=0;y<h;y++){
 				map[y]=new Array();
