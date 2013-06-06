@@ -1,0 +1,1 @@
+"E:\Program Files\Adobe\Adobe Flash Builder 4.6\sdks\4.6.0_with_air_3.5.0\bin\adt" -package -target apk-captive-runtime -storetype pkcs12 -keystore ..\p12\android_dev.p12 -storepass 1234 BusyMonsters.apk BusyMonsters-app.xml BusyMonsters.swf icons Default.png

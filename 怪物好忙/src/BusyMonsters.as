@@ -1,0 +1,163 @@
+/***
+BusyMonsters
+创建人：ZЁЯ¤　身高：168cm+；体重：57kg+；已婚（单身美女们没机会了~~）；最爱的运动：睡觉；格言：路见不平，拔腿就跑。QQ：358315553。
+创建时间：2013年06月06日 09:44:47
+简要说明：这家伙很懒什么都没写。
+用法举例：这家伙还是很懒什么都没写。
+*/
+
+package{
+	import assets.Main;
+	
+	import busymonsters.BasePage;
+	import busymonsters.GameEvent;
+	import busymonsters.PageGame;
+	import busymonsters.PageMenu;
+	
+	import flash.display.*;
+	import flash.events.*;
+	import flash.geom.*;
+	import flash.media.*;
+	import flash.net.*;
+	import flash.system.*;
+	import flash.text.*;
+	import flash.ui.*;
+	import flash.utils.*;
+	
+	public class BusyMonsters extends Sprite{
+		
+		private var main:Main;
+		
+		private var currPage:BasePage;
+		
+		private var wid0:int;
+		private var hei0:int;
+		
+		private var outputTxt:TextField;
+		
+		public function BusyMonsters(){
+			
+			trace("需要教学系统（参考宝石迷阵和Candy Crush Saga）。");
+			trace("Tile不要用跳帧的形式换图。");
+			
+			outputMsg=_outputMsg;
+			
+			this.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR,uncaughtError);
+			
+			try{
+				getDefinitionByName("flash.media::CameraRoll");
+				if(Capabilities.os.indexOf("Windows ")==0){//我的电脑的调试环境
+					isMobile=false;
+				}else{
+					isMobile=true;
+				}
+			}catch(e:Error){
+				isMobile=false;
+			}
+			//trace("isMobile="+isMobile);
+			if(stage){
+				added();
+			}else{
+				this.addEventListener(Event.ADDED_TO_STAGE,added);
+			}
+		}
+		private function uncaughtError(event:UncaughtErrorEvent):void{
+			outputMsg(event.error);
+		}
+		private function _outputMsg(msg:String,...args):void{
+			if(outputTxt){
+			}else{
+				outputTxt=new TextField();
+				this.addChild(outputTxt);
+				outputTxt.x=10;
+				outputTxt.y=10;
+				outputTxt.textColor=0xff0000;
+				outputTxt.border=true;
+				outputTxt.background=true;
+				outputTxt.text="";
+				outputTxt.autoSize=TextFieldAutoSize.LEFT;
+			}
+			outputTxt.appendText(msg+"\n");
+		}
+		private function added(...args):void{
+			stage.align=StageAlign.TOP_LEFT;
+			stage.scaleMode=StageScaleMode.NO_SCALE;
+			
+			//trace("stage.stageWidth="+stage.stageWidth+",stage.stageHeight="+stage.stageHeight);
+			//trace("Capabilities.screenDPI="+Capabilities.screenDPI);
+			this.addChild(main=new Main());
+			if(Capabilities.screenDPI==72){//pc?
+				main.scaleX=main.scaleY=Capabilities.screenDPI*0.012;
+			}else{
+				main.scaleX=main.scaleY=Capabilities.screenDPI*0.006;
+			}
+			
+			this.tabChildren=false;
+			var i:int=main.numChildren;
+			while(--i>=0){
+				var child:DisplayObject=main.getChildAt(i);
+				if(child.hasOwnProperty("mouseEnabled")){
+					child["mouseEnabled"]=false;
+				}
+				if(child.hasOwnProperty("mouseChildren")){
+					child["mouseChildren"]=false;
+				}
+			}
+			
+			main.container.mouseChildren=true;
+			
+			wid0=main.bg.width;
+			hei0=main.bg.height;
+			
+			stage.addEventListener(Event.RESIZE,resize);
+			
+			addPage(new PageMenu());
+			currPage.clip.addEventListener(GameEvent.START_GAME,startGame);
+			
+			startGame();
+			
+		}
+		
+		private function startGame(...args):void{
+			currPage.clip.removeEventListener(GameEvent.START_GAME,startGame);
+			removeCurrPage();
+			addPage(new PageGame());
+		}
+		
+		private function resize(...args):void{
+			
+			var wid:int=Math.ceil(stage.stageWidth/main.scaleX);
+			var hei:int=Math.ceil(stage.stageHeight/main.scaleY);
+			outputMsg("wid="+wid+"，hei="+hei);
+			
+			main.bg.width=wid;
+			main.bg.height=hei;
+			
+			currPage.resize(wid0,hei0,wid,hei);
+			
+		}
+		
+		private function addPage(page:BasePage):void{
+			
+			if(currPage){
+				throw new Error("请先 removeCurrPage()");
+			}
+			
+			currPage=page;
+			main.container.addChild(currPage.clip);
+			
+			resize();
+			
+		}
+		private function removeCurrPage():void{
+			if(currPage){
+				var clip:Sprite=currPage.clip;
+				currPage.clear();
+				currPage=null;
+				main.container.removeChild(clip);
+			}else{
+				throw new Error("请先 removeCurrPage()");
+			}
+		}
+	}
+}
