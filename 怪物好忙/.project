@@ -22,4 +22,16 @@
 		<nature>com.adobe.flexbuilder.project.apollonature</nature>
 		<nature>com.adobe.flexbuilder.project.actionscriptnature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>[source path] src_zero_swf</name>
+			<type>2</type>
+			<location>F:/zero-swf/src</location>
+		</link>
+		<link>
+			<name>[source path] src_2013</name>
+			<type>2</type>
+			<location>F:/src_2013</location>
+		</link>
+	</linkedResources>
 </projectDescription>

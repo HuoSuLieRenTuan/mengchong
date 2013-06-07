@@ -8,6 +8,9 @@ PageGame
 
 package busymonsters{
 	import assets.PageGame;
+	import assets.Tile;
+	
+	import com.greensock.TweenMax;
 	
 	import flash.display.*;
 	import flash.events.*;
@@ -32,7 +35,7 @@ package busymonsters{
 			for(var y:int=0;y<h;y++){
 				map[y]=new Array();
 				for(var x:int=0;x<w;x++){
-					var tile:Tile=new Tile();
+					var tile:busymonsters.Tile=new busymonsters.Tile();
 					clip["tileArea"].addChild(tile.clip);
 					map[y][x]=tile;
 					tile.color=int(Math.random()*6)+1;
@@ -40,6 +43,28 @@ package busymonsters{
 					tile.clip.y=y*d;
 				}
 			}
+			
+			clip["tileArea"].mouseChildren=true;
+			clip["tileArea"].addEventListener(MouseEvent.MOUSE_OVER,mouseOver);
+			clip["tileArea"].addEventListener(MouseEvent.MOUSE_OUT,mouseOut);
+			clip["tileArea"].addEventListener(MouseEvent.MOUSE_DOWN,mouseDown);
+			
+		}
+		
+		private function mouseOver(event:MouseEvent):void{
+			var clip:assets.Tile=event.target as assets.Tile;
+			if(clip){
+				TweenMax.to(clip,8,{scaleX:1.05,scaleY:1.05,colorMatrixFilter:{saturation:1},useFrames:true});
+			}
+		}
+		private function mouseOut(event:MouseEvent):void{
+			var clip:assets.Tile=event.target as assets.Tile;
+			if(clip){
+				TweenMax.to(clip,8,{scaleX:1,scaleY:1,colorMatrixFilter:{saturation:0},useFrames:true});
+			}
+			
+		}
+		private function mouseDown(event:MouseEvent):void{
 			
 		}
 		
