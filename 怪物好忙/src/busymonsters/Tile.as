@@ -23,6 +23,7 @@ package busymonsters{
 		
 		public function Tile(){
 			clip=new assets.Tile();
+			clip.buttonMode=true;
 			clip.stop();
 		}
 		

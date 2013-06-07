@@ -51,22 +51,12 @@ package{
 			
 			this.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR,uncaughtError);
 			
-			try{
-				getDefinitionByName("flash.media::CameraRoll");
-				if(Capabilities.os.indexOf("Windows ")==0){//我的电脑的调试环境
-					isMobile=false;
-				}else{
-					isMobile=true;
-				}
-			}catch(e:Error){
-				isMobile=false;
-			}
-			//trace("isMobile="+isMobile);
 			if(stage){
 				added();
 			}else{
 				this.addEventListener(Event.ADDED_TO_STAGE,added);
 			}
+			
 		}
 		private function uncaughtError(event:UncaughtErrorEvent):void{
 			outputMsg(event.error);
@@ -92,13 +82,19 @@ package{
 			
 			this.addChild(main=new Main());
 			
-			//不是很准确地区分PC和移动设备
+			/*//不是很准确地区分PC和移动设备
 			if(Capabilities.screenDPI>72){
 				//移动设备
 				main.scaleX=main.scaleY=Capabilities.screenDPI/96;
 			}//else{
 			//	PC
-			//}
+			//}*/
+			
+			//不是很准确地区分PC和移动设备
+			if(Capabilities.playerType=="Desktop"){
+				//移动设备
+				main.scaleX=main.scaleY=Capabilities.screenDPI/96;
+			}
 			
 			this.tabChildren=false;
 			var i:int=main.numChildren;
@@ -125,6 +121,7 @@ package{
 			startGame();
 			
 			outputMsg(stage.stageWidth+"x"+stage.stageHeight+"，Capabilities.screenDPI="+Capabilities.screenDPI+"，main.transform.matrix="+main.transform.matrix);
+			outputMsg("Capabilities.playerType="+Capabilities.playerType);
 			
 		}
 		
