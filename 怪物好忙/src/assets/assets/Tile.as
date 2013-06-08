@@ -9,14 +9,13 @@ Tile
 package assets{
 	import flash.display.*;
 	import flash.events.*;
-	import flash.utils.*;
-	import flash.text.*;
-	import flash.net.*;
-	
 	import flash.geom.*;
+	import flash.net.*;
 	import flash.system.*;
+	import flash.text.*;
+	import flash.utils.*;
 	
-	public class Tile extends MovieClip{
+	public class Tile extends Sprite{
 		public function Tile(){
 		}
 	}

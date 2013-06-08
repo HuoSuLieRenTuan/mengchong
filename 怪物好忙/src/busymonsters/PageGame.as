@@ -8,9 +8,7 @@ PageGame
 
 package busymonsters{
 	import assets.PageGame;
-	import assets.Tile;
-	
-	import com.greensock.TweenMax;
+	import assets.SelectedClip;
 	
 	import flash.display.*;
 	import flash.events.*;
@@ -24,6 +22,8 @@ package busymonsters{
 		
 		private var map:Array;
 		
+		private var selectedClip:SelectedClip;
+		
 		public function PageGame(){
 			
 			super(new assets.PageGame());
@@ -35,14 +35,18 @@ package busymonsters{
 			for(var y:int=0;y<h;y++){
 				map[y]=new Array();
 				for(var x:int=0;x<w;x++){
-					var tile:busymonsters.Tile=new busymonsters.Tile();
-					clip["tileArea"].addChild(tile.clip);
+					var tile:busymonsters.Tile=new busymonsters.Tile(int(Math.random()*6));
+					clip["tileArea"].addChild(tile);
 					map[y][x]=tile;
-					tile.color=int(Math.random()*6)+1;
-					tile.clip.x=x*d;
-					tile.clip.y=y*d;
+					tile.x=x*d;
+					tile.y=y*d;
 				}
 			}
+			
+			selectedClip=(clip as assets.PageGame).selectedClip;
+			selectedClip.visible=false;
+			clip["tileArea"].addChild(selectedClip);
+			selectedClip.mouseEnabled=selectedClip.mouseChildren=false;
 			
 			clip["tileArea"].mouseChildren=true;
 			clip["tileArea"].addEventListener(MouseEvent.MOUSE_OVER,mouseOver);
@@ -52,20 +56,18 @@ package busymonsters{
 		}
 		
 		private function mouseOver(event:MouseEvent):void{
-			var clip:assets.Tile=event.target as assets.Tile;
-			if(clip){
-				TweenMax.to(clip,8,{scaleX:1.05,scaleY:1.05,colorMatrixFilter:{saturation:1},useFrames:true});
-			}
+			var tile:Tile=event.target as Tile;
+			tile.selected=true;
 		}
 		private function mouseOut(event:MouseEvent):void{
-			var clip:assets.Tile=event.target as assets.Tile;
-			if(clip){
-				TweenMax.to(clip,8,{scaleX:1,scaleY:1,colorMatrixFilter:{saturation:0},useFrames:true});
-			}
-			
+			var tile:Tile=event.target as Tile;
+			tile.selected=false;
 		}
 		private function mouseDown(event:MouseEvent):void{
-			
+			var tile:Tile=event.target as Tile;
+			selectedClip.x=tile.x;
+			selectedClip.y=tile.y;
+			selectedClip.visible=true;
 		}
 		
 	}

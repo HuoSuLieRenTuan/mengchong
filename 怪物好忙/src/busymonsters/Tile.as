@@ -7,7 +7,10 @@ Tile
 */
 
 package busymonsters{
+	
 	import assets.Tile;
+	
+	import com.greensock.TweenMax;
 	
 	import flash.display.*;
 	import flash.events.*;
@@ -17,24 +20,32 @@ package busymonsters{
 	import flash.text.*;
 	import flash.utils.*;
 	
-	public class Tile{
+	public class Tile extends Sprite{
 		
-		public var clip:assets.Tile;
+		private static const TileClassV:Vector.<Class>=new <Class>[assets.Tile_0_0,assets.Tile_1_0,assets.Tile_2_0,assets.Tile_3_0,assets.Tile_4_0,assets.Tile_5_0];
 		
-		public function Tile(){
-			clip=new assets.Tile();
-			clip.buttonMode=true;
-			clip.mouseChildren=false;
-			clip.stop();
+		private var clip:assets.Tile;
+		
+		public var color:int;
+		
+		public function Tile(_color:int){
+			this.buttonMode=true;
+			this.mouseChildren=false;
+			color=_color;
+			this.addChild(clip=new (TileClassV[color])());
 		}
 		
-		private var __color:int;
-		public function get color():int{
-			return __color;
+		private var __selected:Boolean;
+		public function get selected():Boolean{
+			return __selected;
 		}
-		public function set color(_color:int):void{
-			__color=_color;
-			clip.gotoAndStop((__color-1)*3+2);
+		public function set selected(_selected:Boolean):void{
+			__selected=_selected;
+			if(__selected){
+				TweenMax.to(clip,8,{scaleX:1.05,scaleY:1.05,colorMatrixFilter:{saturation:1.3},useFrames:true});
+			}else{
+				TweenMax.to(clip,8,{scaleX:1,scaleY:1,colorMatrixFilter:{saturation:1},useFrames:true});
+			}
 		}
 		
 	}

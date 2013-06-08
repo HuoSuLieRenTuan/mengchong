@@ -38,7 +38,7 @@ package{
 		public function BusyMonsters(){
 			
 			trace("需要教学系统（参考宝石迷阵和Candy Crush Saga）。");
-			trace("Tile不要用跳帧的形式换图。");
+			//trace("Tile不要用跳帧的形式换图。");
 			
 			this.addEventListener(Event.ENTER_FRAME,enterFrame);
 		}
