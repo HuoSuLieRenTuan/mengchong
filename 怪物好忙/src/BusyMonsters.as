@@ -49,6 +49,8 @@ package{
 			
 			outputMsg=_outputMsg;
 			
+			outputMsg("0.0.001");
+			
 			this.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR,uncaughtError);
 			
 			if(stage){

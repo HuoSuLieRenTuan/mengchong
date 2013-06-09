@@ -42,7 +42,7 @@ package busymonsters{
 		public function set selected(_selected:Boolean):void{
 			__selected=_selected;
 			if(__selected){
-				TweenMax.to(clip,8,{scaleX:1.05,scaleY:1.05,colorMatrixFilter:{saturation:1.3},useFrames:true});
+				TweenMax.to(clip,8,{scaleX:1.1,scaleY:1.1,colorMatrixFilter:{saturation:1.3},useFrames:true});
 			}else{
 				TweenMax.to(clip,8,{scaleX:1,scaleY:1,colorMatrixFilter:{saturation:1},useFrames:true});
 			}
