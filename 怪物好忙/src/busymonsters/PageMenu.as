@@ -18,6 +18,9 @@ package busymonsters{
 	import flash.utils.*;
 	
 	public class PageMenu extends BasePage{
+		
+		public var clip:assets.PageMenu;
+		
 		public function PageMenu(){
 			super(new assets.PageMenu());
 			clip.addEventListener(MouseEvent.CLICK,click);

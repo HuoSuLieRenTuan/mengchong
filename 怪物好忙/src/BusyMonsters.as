@@ -64,12 +64,13 @@ package{
 			outputMsg(event.error);
 		}
 		private function _outputMsg(msg:String,...args):void{
+			//trace("msg="+msg);
 			if(outputTxt){
 			}else{
 				outputTxt=new TextField();
 				this.addChild(outputTxt);
 				outputTxt.x=10;
-				outputTxt.y=10;
+				outputTxt.y=150;
 				outputTxt.textColor=0xff0000;
 				outputTxt.border=true;
 				outputTxt.background=true;
@@ -82,7 +83,7 @@ package{
 			stage.align=StageAlign.TOP_LEFT;
 			stage.scaleMode=StageScaleMode.NO_SCALE;
 			
-			this.addChild(main=new Main());
+			this.addChildAt(main=new Main(),0);
 			
 			/*//不是很准确地区分PC和移动设备
 			if(Capabilities.screenDPI>72){
@@ -118,7 +119,7 @@ package{
 			stage.addEventListener(Event.RESIZE,resize);
 			
 			addPage(new PageMenu());
-			currPage.clip.addEventListener(GameEvent.START_GAME,startGame);
+			currPage["clip"].addEventListener(GameEvent.START_GAME,startGame);
 			
 			startGame();
 			
@@ -128,7 +129,7 @@ package{
 		}
 		
 		private function startGame(...args):void{
-			currPage.clip.removeEventListener(GameEvent.START_GAME,startGame);
+			currPage["clip"].removeEventListener(GameEvent.START_GAME,startGame);
 			removeCurrPage();
 			addPage(new PageGame());
 		}
@@ -153,14 +154,14 @@ package{
 			}
 			
 			currPage=page;
-			main.container.addChild(currPage.clip);
+			main.container.addChild(currPage["clip"]);
 			
 			resize();
 			
 		}
 		private function removeCurrPage():void{
 			if(currPage){
-				var clip:Sprite=currPage.clip;
+				var clip:Sprite=currPage["clip"];
 				currPage.clear();
 				currPage=null;
 				main.container.removeChild(clip);

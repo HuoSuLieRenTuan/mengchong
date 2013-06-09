@@ -18,6 +18,7 @@ package assets{
 	public class PageGame extends Sprite{
 		public var tileArea:Sprite;
 		public var selectedClip:SelectedClip;
+		public var effectArea:Sprite;
 		public function PageGame(){
 		}
 	}

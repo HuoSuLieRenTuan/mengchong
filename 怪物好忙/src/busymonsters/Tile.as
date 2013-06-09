@@ -32,7 +32,9 @@ package busymonsters{
 			this.buttonMode=true;
 			this.mouseChildren=false;
 			color=_color;
-			this.addChild(clip=new (TileClassV[color])());
+			if(color>-1){
+				this.addChild(clip=new (TileClassV[color])());
+			}
 		}
 		
 		private var __selected:Boolean;

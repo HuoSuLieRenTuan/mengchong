@@ -17,14 +17,12 @@ package busymonsters{
 	
 	public class BasePage{
 		
-		public var clip:Sprite;
-		
 		public function BasePage(_clip:Sprite){
-			clip=_clip;
+			this["clip"]=_clip;
 			
-			var i:int=clip.numChildren;
+			var i:int=this["clip"].numChildren;
 			while(--i>=0){
-				var child:DisplayObject=clip.getChildAt(i);
+				var child:DisplayObject=this["clip"].getChildAt(i);
 				if(child.hasOwnProperty("mouseEnabled")){
 					child["mouseEnabled"]=false;
 				}
@@ -42,13 +40,13 @@ package busymonsters{
 			
 		}
 		public function clear():void{
-			clip=null;
+			this["clip"]=null;
 		}
 		
 		public function resize(wid0:int,hei0:int,wid:int,hei:int):void{
-			var i:int=clip.numChildren;
+			var i:int=this["clip"].numChildren;
 			while(--i>=0){
-				var child:DisplayObject=clip.getChildAt(i);
+				var child:DisplayObject=this["clip"].getChildAt(i);
 				if(child.hasOwnProperty("align")){
 					if(child["align"].indexOf("r")>-1){
 						child.x=wid-(wid0-child["x0"]);
