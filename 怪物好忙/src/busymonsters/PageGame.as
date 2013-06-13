@@ -62,7 +62,7 @@ package busymonsters{
 			//从上到下，从左到右生成初始地图（初始地图不能有自动消除的）
 			map=new Array(h);
 			for(var y0:int=0;y0<h;y0++){
-				map[y0]=new Array();
+				var line:Array=new Array();
 				for(var x0:int=0;x0<w;x0++){
 					
 					if(x0==0||x0==w-1||y0==0||y0==h-1){
@@ -73,8 +73,8 @@ package busymonsters{
 						while(true){
 							var color:int=int(Math.random()*3);
 							if(x0>=3){
-								if(map[y0][x0-1].color==color){
-									if(map[y0][x0-2].color==color){
+								if(line[x0-1].color==color){
+									if(line[x0-2].color==color){
 										continue;
 									}
 								}
@@ -93,11 +93,12 @@ package busymonsters{
 					}
 					
 					clip.tileArea.addChild(tile);
-					map[y0][x0]=tile;
+					line[x0]=tile;
 					tile.x=x0*d;
 					tile.y=y0*d;
 					
 				}
+				map[y0]=line;
 			}
 			outputMsg("生成地图耗时："+(getTimer()-t)+"毫秒。");
 			
@@ -111,6 +112,20 @@ package busymonsters{
 			clip.tileArea.addEventListener(MouseEvent.MOUSE_OUT,mouseOut);
 			clip.tileArea.addEventListener(MouseEvent.MOUSE_DOWN,mouseDown);
 			
+		}
+		
+		override public function clear():void{
+			clip.removeEventListener(Event.ENTER_FRAME,falling);
+			clip.tileArea.removeEventListener(MouseEvent.MOUSE_OVER,mouseOver);
+			clip.tileArea.removeEventListener(MouseEvent.MOUSE_OUT,mouseOut);
+			clip.tileArea.removeEventListener(MouseEvent.MOUSE_DOWN,mouseDown);
+			clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
+			clip.stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUp);
+			selectedClip=null;
+			selectedTile=null;
+			Jiaohuan.clear();
+			Xiaochu.clear();
+			super.clear();
 		}
 		
 		private function mouseOver(event:MouseEvent):void{
@@ -159,36 +174,39 @@ package busymonsters{
 			switch(type){
 				case MouseEvent.MOUSE_DOWN:
 					if(tile){
-						if(selectedTile){
-							//已经选中一个方块了
-							if(selectedTile==tile){
-								isDownSelect=false;
-							}else{
-								var x1:int=Math.round(selectedTile.x/d);
-								var y1:int=Math.round(selectedTile.y/d);
-								var x2:int=Math.round(tile.x/d);
-								var y2:int=Math.round(tile.y/d);
-								if(
-									x1==x2&&(y1-y2==-1||y1-y2==1)
-									||
-									y1==y2&&(x1-x2==-1||x1-x2==1)
-								){
-									//点击相邻的方块，交换
-									isDownSelect=false;
-									clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
-									clip.stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUp);
-									jiaohuan(selectedTile,tile);
-									selectedTile=null;
-								}else{
-									//点击不相邻的方块，选中此方块
-									isDownSelect=true;
-									selectedTile=tile;
-								}
-							}
+						if(tile.locked){
 						}else{
-							//还未选中任何方块，选中一个方块
-							isDownSelect=true;
-							selectedTile=tile;
+							if(selectedTile){
+								//已经选中一个方块了
+								if(selectedTile==tile){
+									isDownSelect=false;
+								}else{
+									var x1:int=Math.round(selectedTile.x/d);
+									var y1:int=Math.round(selectedTile.y/d);
+									var x2:int=Math.round(tile.x/d);
+									var y2:int=Math.round(tile.y/d);
+									if(
+										x1==x2&&(y1-y2==-1||y1-y2==1)
+										||
+										y1==y2&&(x1-x2==-1||x1-x2==1)
+									){
+										//点击相邻的方块，交换
+										isDownSelect=false;
+										clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
+										clip.stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUp);
+										jiaohuan(selectedTile,tile);
+										selectedTile=null;
+									}else{
+										//点击不相邻的方块，选中此方块
+										isDownSelect=true;
+										selectedTile=tile;
+									}
+								}
+							}else{
+								//还未选中任何方块，选中一个方块
+								isDownSelect=true;
+								selectedTile=tile;
+							}
 						}
 					}
 				break;
@@ -217,7 +235,7 @@ package busymonsters{
 						}
 						tile=map[y2][x2];
 						if(tile){
-							if(tile.color>-1){
+							if(!(tile.locked)&&(tile.color>-1)){
 								clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
 								clip.stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUp);
 								jiaohuan(selectedTile,tile);
@@ -228,13 +246,16 @@ package busymonsters{
 				break;
 				case MouseEvent.MOUSE_UP:
 					if(tile){
-						if(selectedTile){
-							if(isDownSelect){
-							}else{
-								if(selectedTile==tile){
-									selectedTile=null;
+						if(tile.locked){
+						}else{
+							if(selectedTile){
+								if(isDownSelect){
 								}else{
-									selectedTile=tile;
+									if(selectedTile==tile){
+										selectedTile=null;
+									}else{
+										selectedTile=tile;
+									}
 								}
 							}
 						}
@@ -254,145 +275,160 @@ package busymonsters{
 		}
 		
 		private function jiaohuan(tile1:Tile,tile2:Tile):void{
+			//开始交换
 			tile1.mouseEnabled=false;
 			tile2.mouseEnabled=false;
 			var x1:int=Math.round(tile1.x/d);
 			var y1:int=Math.round(tile1.y/d);
 			var x2:int=Math.round(tile2.x/d);
 			var y2:int=Math.round(tile2.y/d);
-			map[y1][x1]=null;
-			map[y2][x2]=null;
+			tile1.locked=true;
+			tile2.locked=true;
 			Jiaohuan.add(tile1,tile2,x1*d,y1*d,x2*d,y2*d,jiaohuanComplete);
 		}
 		private function jiaohuanComplete(tile1:Tile,tile2:Tile):void{
+			//交换完毕
 			var x2:int=Math.round(tile1.x/d);
 			var y2:int=Math.round(tile1.y/d);
 			var x1:int=Math.round(tile2.x/d);
 			var y1:int=Math.round(tile2.y/d);
-			map[y2][x2]=tile1;
-			map[y1][x1]=tile2;
+			tile1.locked=false;
+			tile2.locked=false;
 			tile1.mouseEnabled=true;
 			tile2.mouseEnabled=true;
-			
-			var xyArrArr:Array=new Array();
-			var matchArr1:Array=getMatchArr(tile1);
-			var matchArr2:Array=getMatchArr(tile2);
-			if(matchArr1[0]){
-				//tile1的横向匹配情况
-				if(matchArr2[0]){
-					if(matchArr1[0].toString()==matchArr2[0].toString()){//重复的
-						matchArr2[0]=null;
+			map[y2][x2]=tile1;
+			map[y1][x1]=tile2;
+			var matchArr:Array=checkMatch();
+			if(matchArr.length){
+				var tileArr:Array=new Array();
+				var xyArr:Array=new Array();
+				for each(var arr:Array in matchArr){
+					for each(var xy:Array in arr){
+						xyArr.push(xy);
+						var x:int=xy[0];
+						var y:int=xy[1];
+						var tile:Tile=map[y][x];
+						tile.locked=true;
+						tile.visible=false;
+						var effectTile:Tile=new Tile(tile.color);
+						clip.effectArea.addChild(effectTile);
+						tileArr.push(effectTile);
+						effectTile.x=x*d;
+						effectTile.y=y*d;
 					}
 				}
-				xyArrArr.push(matchArr1[0]);
+				Xiaochu.add(tileArr,xyArr,xiaochuComplete);	
+			}else{
+				jiaohuan(tile2,tile1);
 			}
-			if(matchArr1[1]){
-				//tile1的纵向匹配情况
-				if(matchArr2[1]){
-					if(matchArr1[1].toString()==matchArr2[1].toString()){//重复的
-						matchArr2[1]=null;
-					}
-				}
-				xyArrArr.push(matchArr1[1]);
-			}
-			if(matchArr2[0]){
-				//tile2的横向匹配情况
-				xyArrArr.push(matchArr2[0]);
-			}
-			if(matchArr2[1]){
-				//tile2的纵向匹配情况
-				xyArrArr.push(matchArr2[1]);
-			}
-			
-			for each(var xyArr:Array in xyArrArr){
-				for each(var xy:Array in xyArr){
-					var x:int=xy[0];
-					var y:int=xy[1];
-					var tile:Tile=map[y][x];
-					map[y][x]=null;
-					clip.effectArea.addChild(tile);
-				}
-			}
-			
 		}
 		
-		private function getMatchArr(tile0:Tile):Array{
-			
-			if(tile0.color>-1){
-			}else{
-				return [null,null];
-			}
-			
-			var x0:int=Math.round(tile0.x/d);
-			var y0:int=Math.round(tile0.y/d);
-			
-			var arr1:Array=new Array();
-			var x:int=x0;
-			while(--x>=0){
-				var tile:Tile=map[y0][x];
-				if(tile){
-					if(tile.color==tile0.color){
-						arr1.unshift([x,y0]);
+		private function checkMatch():Array{
+			var t:int=getTimer();
+			var matchArr:Array=new Array();
+			var tile:Tile;
+			for(var y0:int=0;y0<h;y0++){
+				var x0:int=0;
+				while(x0<w){
+					var tile0:Tile=map[y0][x0];
+					if(tile0){
+						if((!tile0.locked)&&(tile0.color>-1)){
+							var x:int=x0;
+							var arr:Array=[[x,y0]];
+							while(tile=map[y0][++x]){
+								if((!tile.locked)&&(tile.color==tile0.color)){
+									arr.push([x,y0]);
+								}else{
+									break;
+								}
+							}
+							if(arr.length>=3){
+								matchArr.push(arr);
+							}
+							x0+=arr.length;
+						}else{
+							x0++;
+						}
 					}else{
-						break;
+						x0++;
 					}
-				}else{
-					break;
+					
 				}
 			}
-			arr1.push([x0,y0]);
-			x=x0;
-			while(++x<w){
-				tile=map[y0][x];
-				if(tile){
-					if(tile.color==tile0.color){
-						arr1.push([x,y0]);
+			for(x0=0;x0<w;x0++){
+				y0=0;
+				while(y0<h){
+					tile0=map[y0][x0];
+					if(tile0){
+						if((!tile0.locked)&&(tile0.color>-1)){
+							var y:int=y0;
+							arr=[[x0,y]];
+							while(tile=map[++y][x0]){
+								if((!tile.locked)&&(tile.color==tile0.color)){
+									arr.push([x0,y]);
+								}else{
+									break;
+								}
+							}
+							if(arr.length>=3){
+								matchArr.push(arr);
+							}
+							y0+=arr.length;
+						}else{
+							y0++;
+						}
 					}else{
-						break;
+						y0++;
 					}
-				}else{
-					break;
+					
 				}
 			}
-			if(arr1.length>=3){
-			}else{
-				arr1=null;
+			outputMsg("检测匹配耗时 "+(getTimer()-t)+" 毫秒。");
+			return matchArr;
+		}
+		
+		private function xiaochuComplete(tileArr:Array,xyArr:Array):void{
+			//删除完毕
+			for each(var effectTile:Tile in tileArr){
+				clip.effectArea.removeChild(effectTile);
 			}
-			
-			var arr2:Array=new Array();
-			var y:int=y0;
-			while(--y>=0){
-				tile=map[y][x0];
-				if(tile){
-					if(tile.color==tile0.color){
-						arr2.unshift([x0,y]);
+			//trace("xyArr="+xyArr);
+			for each(var xy:Array in xyArr){//xy可能会有重复的
+				var x:int=xy[0];
+				var y:int=xy[1];
+				map[y][x]=null;
+			}
+			//上面的开始往下掉
+			clip.removeEventListener(Event.ENTER_FRAME,falling);
+			clip.addEventListener(Event.ENTER_FRAME,falling);
+		}
+		private function falling(...args):void{
+			for(var x0:int=0;x0<w;x0++){
+				var y0:int=h;
+				while(--y0>=0){
+					var tile0:Tile=map[y0][x0];
+					if(tile0){
 					}else{
+						var y:int=y0;
+						while(--y>=0){
+							var tile:Tile=map[y][x0];
+							if(tile){
+								if(tile.color>-1){
+									tile.locked=true;
+									tile.y+=5;
+									var dy:int=(y+1)*d-tile.y;
+									if(dy<=0){
+										map[y][x0]=null;
+										map[y+1][x0]=tile;
+										tile.locked=false;
+									}
+								}
+							}
+						}
 						break;
 					}
-				}else{
-					break;
 				}
 			}
-			arr2.push([x0,y0]);
-			y=y0;
-			while(++y<h){
-				tile=map[y][x0];
-				if(tile){
-					if(tile.color==tile0.color){
-						arr2.push([x0,y]);
-					}else{
-						break;
-					}
-				}else{
-					break;
-				}
-			}
-			if(arr2.length>=3){
-			}else{
-				arr2=null;
-			}
-			
-			return [arr1,arr2];
 		}
 		
 	}

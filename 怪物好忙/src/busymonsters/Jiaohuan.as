@@ -23,19 +23,20 @@ package busymonsters{
 		
 		public static function clear():void{
 			for each(var jiaohuan:Jiaohuan in jiaohuanV){
-				TweenMax.killTweensOf(jiaohuan.tile1);
-				TweenMax.killTweensOf(jiaohuan.tile2);
+				jiaohuan.clear();
 			}
+			jiaohuanV.length=0;
 		}
 		
 		public static function add(tile1:Tile,tile2:Tile,x1:int,y1:int,x2:int,y2:int,onComplete:Function):Jiaohuan{
 			
 			var jiaohuan:Jiaohuan=new Jiaohuan();
+			jiaohuan.num=2;
 			jiaohuan.onComplete=onComplete;
 			jiaohuan.tile1=tile1;
 			jiaohuan.tile2=tile2;
 			
-			TweenMax.to(tile1,8,{x:x2,y:y2,useFrames:true});
+			TweenMax.to(tile1,8,{x:x2,y:y2,useFrames:true,onComplete:jiaohuan.complete});
 			TweenMax.to(tile2,8,{x:x1,y:y1,useFrames:true,onComplete:jiaohuan.complete});
 			
 			jiaohuanV.push(jiaohuan);
@@ -45,12 +46,10 @@ package busymonsters{
 		private static function complete(jiaohuan:Jiaohuan):void{
 			
 			var onComplete:Function=jiaohuan.onComplete;
-			jiaohuan.onComplete=null;
 			var tile1:Tile=jiaohuan.tile1;
 			var tile2:Tile=jiaohuan.tile2;
 			
-			TweenMax.killTweensOf(tile1);
-			TweenMax.killTweensOf(tile2);
+			jiaohuan.clear();
 			
 			jiaohuanV.splice(jiaohuanV.indexOf(jiaohuan),1);
 			
@@ -61,11 +60,21 @@ package busymonsters{
 			
 		}
 		
+		private var num:int;
 		private var onComplete:Function;
 		private var tile1:Tile;
 		private var tile2:Tile;
 		private function complete():void{
-			Jiaohuan.complete(this);
+			if(--num<=0){
+				Jiaohuan.complete(this);
+			}
+		}
+		private function clear():void{
+			onComplete=null;
+			tile1=null;
+			tile2=null;
+			TweenMax.killTweensOf(tile1);
+			TweenMax.killTweensOf(tile2);
 		}
 		
 	}

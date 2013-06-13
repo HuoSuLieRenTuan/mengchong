@@ -26,6 +26,7 @@ package busymonsters{
 		
 		private var clip:assets.Tile;
 		
+		public var locked:Boolean;
 		public var color:int;
 		
 		public function Tile(_color:int){

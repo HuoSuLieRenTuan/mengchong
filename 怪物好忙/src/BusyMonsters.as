@@ -39,6 +39,7 @@ package{
 			
 			trace("需要教学系统（参考宝石迷阵和Candy Crush Saga）。");
 			//trace("Tile不要用跳帧的形式换图。");
+			trace("录像可生成在线地址，gif等。");
 			
 			this.addEventListener(Event.ENTER_FRAME,enterFrame);
 		}
@@ -76,6 +77,7 @@ package{
 				outputTxt.background=true;
 				outputTxt.text="";
 				outputTxt.autoSize=TextFieldAutoSize.LEFT;
+				outputTxt.type=TextFieldType.INPUT;
 			}
 			outputTxt.appendText(msg+"\n");
 		}
