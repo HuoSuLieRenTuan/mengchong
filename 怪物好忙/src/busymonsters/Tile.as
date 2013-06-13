@@ -26,16 +26,17 @@ package busymonsters{
 		
 		private var clip:assets.Tile;
 		
-		public var locked:Boolean;
 		public var color:int;
 		
-		public function Tile(_color:int){
+		public function Tile(_color:int,_falling:Boolean){
 			this.buttonMode=true;
 			this.mouseChildren=false;
 			color=_color;
 			if(color>-1){
 				this.addChild(clip=new (TileClassV[color])());
 			}
+			locked=false;
+			falling=_falling;
 		}
 		
 		private var __selected:Boolean;
@@ -49,6 +50,31 @@ package busymonsters{
 			}else{
 				TweenMax.to(clip,8,{scaleX:1,scaleY:1,colorMatrixFilter:{saturation:1},useFrames:true});
 			}
+		}
+		
+		//正在交换或正在消除
+		private var __locked:Boolean;
+		public function get locked():Boolean{
+			return __locked;
+		}
+		public function set locked(_locked:Boolean):void{
+			__locked=_locked;
+			this.mouseEnabled=__enabled=!(__locked||__falling);
+		}
+		
+		//正在下落
+		private var __falling:Boolean;
+		public function get falling():Boolean{
+			return __falling;
+		}
+		public function set falling(_falling:Boolean):void{
+			__falling=_falling;
+			this.mouseEnabled=__enabled=!(__locked||__falling);
+		}
+		
+		private var __enabled:Boolean;
+		public function get enabled():Boolean{
+			return __enabled;
 		}
 		
 	}

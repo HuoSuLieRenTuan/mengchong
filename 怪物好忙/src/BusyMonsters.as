@@ -125,7 +125,7 @@ package{
 			
 			startGame();
 			
-			outputMsg(stage.stageWidth+"x"+stage.stageHeight+"，Capabilities.screenDPI="+Capabilities.screenDPI+"，main.transform.matrix="+main.transform.matrix);
+			outputMsg(stage.stageWidth+"x"+stage.stageHeight+"\nCapabilities.screenDPI="+Capabilities.screenDPI+"\n"+main.transform.matrix);
 			outputMsg("Capabilities.playerType="+Capabilities.playerType);
 			
 		}

@@ -28,13 +28,14 @@ package busymonsters{
 			jiaohuanV.length=0;
 		}
 		
-		public static function add(tile1:Tile,tile2:Tile,x1:int,y1:int,x2:int,y2:int,onComplete:Function):Jiaohuan{
+		public static function add(tile1:Tile,tile2:Tile,x1:int,y1:int,x2:int,y2:int,needBack:Boolean,onComplete:Function):Jiaohuan{
 			
 			var jiaohuan:Jiaohuan=new Jiaohuan();
 			jiaohuan.num=2;
 			jiaohuan.onComplete=onComplete;
 			jiaohuan.tile1=tile1;
 			jiaohuan.tile2=tile2;
+			jiaohuan.needBack=needBack;
 			
 			TweenMax.to(tile1,8,{x:x2,y:y2,useFrames:true,onComplete:jiaohuan.complete});
 			TweenMax.to(tile2,8,{x:x1,y:y1,useFrames:true,onComplete:jiaohuan.complete});
@@ -48,6 +49,7 @@ package busymonsters{
 			var onComplete:Function=jiaohuan.onComplete;
 			var tile1:Tile=jiaohuan.tile1;
 			var tile2:Tile=jiaohuan.tile2;
+			var needBack:Boolean=jiaohuan.needBack;
 			
 			jiaohuan.clear();
 			
@@ -55,7 +57,7 @@ package busymonsters{
 			
 			if(onComplete==null){
 			}else{
-				onComplete(tile1,tile2);
+				onComplete(tile1,tile2,needBack);
 			}
 			
 		}
@@ -64,6 +66,7 @@ package busymonsters{
 		private var onComplete:Function;
 		private var tile1:Tile;
 		private var tile2:Tile;
+		private var needBack:Boolean;
 		private function complete():void{
 			if(--num<=0){
 				Jiaohuan.complete(this);
