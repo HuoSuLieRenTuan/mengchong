@@ -27,6 +27,7 @@ package busymonsters{
 		private var clip:assets.Tile;
 		
 		public var color:int;
+		public var speed:int;
 		
 		public function Tile(_color:int,_falling:Boolean){
 			this.buttonMode=true;

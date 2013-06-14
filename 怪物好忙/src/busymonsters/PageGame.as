@@ -18,6 +18,8 @@ package busymonsters{
 	import flash.text.*;
 	import flash.utils.*;
 	
+	import zero.Random;
+	
 	public class PageGame extends BasePage{
 		
 		public var clip:assets.PageGame;
@@ -28,7 +30,9 @@ package busymonsters{
 		
 		private var currColorArr:Array;
 		
+		private static const g:int=2;
 		private static const d:int=50;
+		private static const MAX_SPEED:int=d*0.4;
 		private var map:Array;
 		private var w:int;
 		private var h:int;
@@ -41,11 +45,18 @@ package busymonsters{
 			
 			super(new assets.PageGame());
 			
-			currColorArr=[0,1,2,3,4,5];
+			Random.init(
+				//Math.random()*0x100000000
+				1
+			);
+			
+			currColorArr=[0,1,2];
+			//currColorArr=[3,4,5];
+			//currColorArr=[0,1,2,3,4,5];
 			
 			//外围是一圈 color=-1 的 Tile
-			w=10+2;
-			h=10+2;
+			w=8+2;
+			h=8+2;
 			
 			/*
 			xxxxxxxxxxxx
@@ -75,7 +86,7 @@ package busymonsters{
 					}else{
 						//需要保证左边和上边没有和其连成一直线超过三个的
 						while(true){
-							var color:int=currColorArr[int(Math.random()*currColorArr.length)];
+							var color:int=currColorArr[Random.ranInt(currColorArr.length)];
 							if(x0>=3){
 								if(map[y0][x0-1].color==color){
 									if(map[y0][x0-2].color==color){
@@ -185,23 +196,29 @@ package busymonsters{
 								if(selectedTile==tile){
 									isDownSelect=false;
 								}else{
-									var x1:int=Math.round(selectedTile.x/d);
-									var y1:int=Math.round(selectedTile.y/d);
-									var x2:int=Math.round(tile.x/d);
-									var y2:int=Math.round(tile.y/d);
-									if(
-										x1==x2&&(y1-y2==-1||y1-y2==1)
-										||
-										y1==y2&&(x1-x2==-1||x1-x2==1)
-									){
-										//点击相邻的方块，交换
-										isDownSelect=false;
-										clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
-										clip.stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUp);
-										jiaohuan(selectedTile,tile,true);
-										selectedTile=null;
+									if(selectedTile.enabled){
+										var x1:int=Math.round(selectedTile.x/d);
+										var y1:int=Math.round(selectedTile.y/d);
+										var x2:int=Math.round(tile.x/d);
+										var y2:int=Math.round(tile.y/d);
+										if(
+											x1==x2&&(y1-y2==-1||y1-y2==1)
+											||
+											y1==y2&&(x1-x2==-1||x1-x2==1)
+										){
+											//点击相邻的方块，交换
+											isDownSelect=false;
+											clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
+											clip.stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUp);
+											jiaohuan(selectedTile,tile,true);
+											selectedTile=null;
+										}else{
+											//点击不相邻的方块，选中此方块
+											isDownSelect=true;
+											selectedTile=tile;
+										}
 									}else{
-										//点击不相邻的方块，选中此方块
+										//选中的方块不能操作（正在交换或正在下落等）
 										isDownSelect=true;
 										selectedTile=tile;
 									}
@@ -215,35 +232,39 @@ package busymonsters{
 					}
 				break;
 				case MouseEvent.MOUSE_MOVE:
-					var currMouseX:int=clip.tileArea.mouseX;
-					var currMouseY:int=clip.tileArea.mouseY;
-					var dMouseX:int=currMouseX-oldMouseX;
-					var dMouseY:int=currMouseY-oldMouseY;
-					if(dMouseX*dMouseX+dMouseY*dMouseY>100){
-						x1=Math.round(selectedTile.x/d);
-						y1=Math.round(selectedTile.y/d);
-						if(dMouseX*dMouseX>dMouseY*dMouseY){
-							if(dMouseX<0){
-								x2=x1-1;
-							}else{
-								x2=x1+1;
-							}
-							y2=y1;
-						}else{
-							x2=x1;
-							if(dMouseY<0){
-								y2=y1-1;
-							}else{
-								y2=y1+1;
-							}
-						}
-						tile=map[y2][x2];
-						if(tile){
-							if(tile.enabled&&(tile.color>-1)){
-								clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
-								clip.stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUp);
-								jiaohuan(selectedTile,tile,true);
-								selectedTile=null;
+					if(selectedTile){
+						if(selectedTile.enabled){
+							var currMouseX:int=clip.tileArea.mouseX;
+							var currMouseY:int=clip.tileArea.mouseY;
+							var dMouseX:int=currMouseX-oldMouseX;
+							var dMouseY:int=currMouseY-oldMouseY;
+							if(dMouseX*dMouseX+dMouseY*dMouseY>100){
+								x1=Math.round(selectedTile.x/d);
+								y1=Math.round(selectedTile.y/d);
+								if(dMouseX*dMouseX>dMouseY*dMouseY){
+									if(dMouseX<0){
+										x2=x1-1;
+									}else{
+										x2=x1+1;
+									}
+									y2=y1;
+								}else{
+									x2=x1;
+									if(dMouseY<0){
+										y2=y1-1;
+									}else{
+										y2=y1+1;
+									}
+								}
+								tile=map[y2][x2];
+								if(tile){
+									if(tile.enabled&&(tile.color>-1)){
+										clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
+										clip.stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUp);
+										jiaohuan(selectedTile,tile,true);
+										selectedTile=null;
+									}
+								}
 							}
 						}
 					}
@@ -297,16 +318,28 @@ package busymonsters{
 			tile2.locked=false;
 			map[y2][x2]=tile1;
 			map[y1][x1]=tile2;
-			if(checkMatch()){
-			}else{
-				if(needBack){
-					//还原
-					jiaohuan(tile2,tile1,false);
+			
+			var xyMark:Object=new Object();
+			xyMark[x1+","+y1]=true;
+			xyMark[x2+","+y2]=true;
+			var xyArr:Array=checkMatch();
+			if(xyArr){
+				//trace("xyArr.length="+xyArr.length);
+				for each(var xy:Array in xyArr){
+					if(xyMark[xy.toString()]){//如果交换的有一个匹配成功
+						return;
+					}
 				}
 			}
+			
+			if(needBack){
+				//还原
+				jiaohuan(tile2,tile1,false);
+			}
+			
 		}
 		
-		private function checkMatch():Boolean{
+		private function checkMatch():Array{
 			var t:int=getTimer();
 			var matchArr:Array=new Array();
 			var tile:Tile;
@@ -370,26 +403,37 @@ package busymonsters{
 			if(matchArr.length){
 				var tileArr:Array=new Array();
 				var xyArr:Array=new Array();
+				var xyMark:Object=new Object();
 				for each(arr in matchArr){
 					for each(var xy:Array in arr){
-						xyArr.push(xy);
-						x=xy[0];
-						y=xy[1];
-						tile=map[y][x];
-						tile.locked=true;
-						tile.visible=false;
-						var effectTile:Tile=new Tile(tile.color,false);
-						effectTile.mouseEnabled=false;
-						clip.effectArea.addChild(effectTile);
-						tileArr.push(effectTile);
-						effectTile.x=x*d;
-						effectTile.y=y*d;
+						if(xyMark[xy.toString()]){
+						}else{
+							xyMark[xy.toString()]=true;
+							xyArr.push(xy);
+							x=xy[0];
+							y=xy[1];
+							tile=map[y][x];
+							if(selectedTile){
+								if(selectedTile==tile){
+									selectedClip.visible=false;
+									selectedTile=null;
+								}
+							}
+							tile.locked=true;
+							tile.visible=false;
+							var effectTile:Tile=new Tile(tile.color,false);
+							effectTile.mouseEnabled=false;
+							clip.effectArea.addChild(effectTile);
+							tileArr.push(effectTile);
+							effectTile.x=x*d;
+							effectTile.y=y*d;
+						}
 					}
 				}
 				Xiaochu.add(tileArr,xyArr,xiaochuComplete);
-				return true;
+				return xyArr;
 			}
-			return false;
+			return null;
 		}
 		
 		private function xiaochuComplete(tileArr:Array,xyArr:Array):void{
@@ -411,42 +455,117 @@ package busymonsters{
 			var hasFallingTile:Boolean=false;
 			for(var x0:int=0;x0<w;x0++){
 				var y0:int=h;
-				while(--y0>=0){
+				while(--y0>=0){//必须从下到上，因为下面好多算法依赖于这个。。
 					var tile0:Tile=map[y0][x0];
 					if(tile0){
-					}else{
+					}else{//产生了一个空洞
 						if(topLine[x0]){
 						}else{
 							topLine[x0]=map[0][x0];//暂存顶部 color=-1 的一个 tile
-							var color:int=currColorArr[int(Math.random()*currColorArr.length)];
+							var tile:Tile=map[1][x0];
+							if(tile){
+								if(tile.falling){
+									var speed:int=tile.speed;
+								}else{
+									speed=0;
+								}
+							}
+							var color:int=currColorArr[Random.ranInt(currColorArr.length)];
 							tile=new Tile(color,false);
+							tile.falling=true;
+							tile.speed=speed;
 							clip.tileArea.addChild(tile);
 							map[0][x0]=tile;
 							tile.x=x0*d;
 							tile.y=0*d;
 						}
-						var y:int=y0;
+						
+						//同步一下速度，因为如果上面的比下面的速度快，很可能会压上
+						var maxSpeed:int=0;
+						var maxRest:int=0;
+						var y:int=-1;
+						while(++y<y0){
+							tile=map[y][x0];
+							if(tile){
+								if(tile.color>-1){
+									if(tile.locked){
+										maxSpeed=0;
+										maxRest=0;
+									}else{
+										if(tile.falling){
+											var rest:int=tile.y-y*d;
+											if(tile.speed<maxSpeed){
+												tile.speed=maxSpeed;
+											}else if(maxSpeed<tile.speed){
+												maxSpeed=tile.speed;
+											}
+											if(rest<maxRest){
+												tile.y=y*d+maxRest;
+											}else if(maxRest<rest){
+												maxRest=rest;
+											}
+										}
+									}
+								}
+							}
+						}
+						
+						y=y0;
 						while(--y>=0){
-							var tile:Tile=map[y][x0];
+							tile=map[y][x0];
 							if(tile){
 								if(tile.locked){
 									break;
 								}
 								if(tile.color>-1){
-									tile.y+=20;
+									if(tile.falling){
+									}else{
+										tile.speed=0;
+										tile.falling=true;
+									}
+									tile.speed+=g;
+									if(tile.speed>MAX_SPEED){
+										tile.speed=MAX_SPEED;
+									}
+									tile.y+=tile.speed;
 									var dy:int=(y+1)*d-tile.y;
 									if(dy<=0){
-										tile.y=(y+1)*d;
-										tile.falling=false;
+										var hasHole:Boolean=false;
+										var y1:int=y+1;
+										while(++y1<h){
+											var tile1:Tile=map[y1][x0];
+											if(tile1){
+												if(tile1.locked){
+													break;
+												}
+											}else{
+												hasHole=true;
+												break;
+											}
+										}
+										if(hasHole){
+										}else{
+											//下面已经没有空洞了
+											tile.y=(y+1)*d;
+											tile.falling=false;
+										}
 										map[y][x0]=null;
+										if(map[y+1][x0]){
+											throw "xxx";
+										}
 										map[y+1][x0]=tile;
 										if(y==0){
 											map[0][x0]=topLine[x0];
 											topLine[x0]=null;
 										}
 									}else{
-										tile.falling=true;
 										hasFallingTile=true;
+									}
+								}
+								if(selectedTile){
+									if(selectedTile==tile){
+										selectedClip.x=selectedTile.x;
+										selectedClip.y=selectedTile.y;
 									}
 								}
 							}
