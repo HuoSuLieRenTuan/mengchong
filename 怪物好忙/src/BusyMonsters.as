@@ -50,7 +50,7 @@ package{
 			
 			outputMsg=_outputMsg;
 			
-			outputMsg("0.0.001");
+			clearMsg();
 			
 			this.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR,uncaughtError);
 			
@@ -64,12 +64,20 @@ package{
 		private function uncaughtError(event:UncaughtErrorEvent):void{
 			outputMsg(event.error);
 		}
+		private function clearMsg(...args):void{
+			if(outputTxt){
+				outputTxt.text="";
+			}
+			outputMsg("0.0.002");
+			outputMsg("点击可清除。");
+		}
 		private function _outputMsg(msg:String,...args):void{
 			//trace("msg="+msg);
 			if(outputTxt){
 			}else{
 				outputTxt=new TextField();
 				this.addChild(outputTxt);
+				outputTxt.addEventListener(MouseEvent.CLICK,clearMsg);
 				outputTxt.x=10;
 				outputTxt.y=150;
 				outputTxt.textColor=0xff0000;

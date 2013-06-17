@@ -30,12 +30,9 @@ package busymonsters{
 		public var x0:int;
 		public var y0:int;
 		
-		//private var test_txt:TextField;
+		private var test_txt:TextField;
 		
-		public function Tile(
-			_color:int
-			//,_falling:Boolean
-		){
+		public function Tile(_color:int){
 			this.buttonMode=true;
 			this.mouseChildren=false;
 			color=_color;
@@ -43,21 +40,22 @@ package busymonsters{
 				this.addChild(clip=getTileClip(color));
 			}
 			locked=false;
-			//falling=_falling;
 			
-			//test_txt=new TextField();
-			//this.addChild(test_txt);
-			//test_txt.x=-20;
-			//test_txt.y=-20;
-			//test_txt.autoSize=TextFieldAutoSize.LEFT;
-			//test_txt.border=true;
-			//test_txt.background=true;
-			//this.addEventListener(Event.ENTER_FRAME,testing);
+			/*
+			test_txt=new TextField();
+			this.addChild(test_txt);
+			test_txt.x=-20;
+			test_txt.y=-20;
+			test_txt.autoSize=TextFieldAutoSize.LEFT;
+			test_txt.border=true;
+			test_txt.background=true;
+			this.addEventListener(Event.ENTER_FRAME,testing);
+			//*/
 		}
 		
-		//private function testing(...args):void{
-		//	test_txt.htmlText='<font size="8">y='+y+'\nspeed='+speed+'</font>';
-		//}
+		private function testing(...args):void{
+			test_txt.htmlText='<font size="8">y='+y+'\nspeed='+speed+'</font>';
+		}
 		
 		private var __selected:Boolean;
 		public function get selected():Boolean{
@@ -86,19 +84,7 @@ package busymonsters{
 			);
 		}
 		
-		public var bounce:Boolean;
-		
-		/*
-		//正在下落
-		private var __falling:Boolean;
-		public function get falling():Boolean{
-			return __falling;
-		}
-		public function set falling(_falling:Boolean):void{
-			__falling=_falling;
-			this.mouseEnabled=__enabled=!(__locked||__falling);
-		}
-		*/
+		public var bounce:int;
 		
 		private var __enabled:Boolean;
 		public function get enabled():Boolean{

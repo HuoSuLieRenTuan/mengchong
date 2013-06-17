@@ -34,7 +34,7 @@ package busymonsters{
 		private static const maxSpeed:int=d*0.8;
 		private static const g:int=2;
 		private var map:Array;
-		private var fallingMap:Array;
+		private var fallingTileV:Vector.<Tile>;//按物理定律掉落即可
 		private var w:int;
 		private var h:int;
 		
@@ -50,9 +50,9 @@ package busymonsters{
 				1
 			);
 			
-			currColorArr=[0,1,2];
+			//currColorArr=[0,1,2];
 			//currColorArr=[3,4,5];
-			//currColorArr=[0,1,2,3,4,5];
+			currColorArr=[0,1,2,3,4,5];
 			
 			//外围是一圈 color=-1 的 Tile
 			w=8+2;
@@ -76,17 +76,13 @@ package busymonsters{
 			var t:int=getTimer();
 			//从上到下，从左到右生成初始地图（初始地图不能有自动消除的）
 			map=new Array(h);
-			fallingMap=new Array(h);
+			fallingTileV=new Vector.<Tile>();
 			for(var y0:int=0;y0<h;y0++){
 				map[y0]=new Array();
-				fallingMap[y0]=new Array();
 				for(var x0:int=0;x0<w;x0++){
 					
 					if(x0==0||x0==w-1||y0==0||y0==h-1){
-						var tile:Tile=new Tile(
-							-1
-							//,false
-						);
+						var tile:Tile=new Tile(-1);
 						tile.mouseEnabled=false;
 					}else{
 						//需要保证左边和上边没有和其连成一直线超过三个的
@@ -108,17 +104,13 @@ package busymonsters{
 							}
 							break;
 						}
-						tile=new Tile(
-							color
-							//,false
-						);
+						tile=new Tile(color);
 					}
 					
 					clip.tileArea.addChild(tile);
 					map[y0][x0]=tile;
 					tile.x0=x0;
 					tile.y0=y0;
-					fallingMap[y0][x0]=null;
 					tile.x=x0*d;
 					tile.y=y0*d;
 					
@@ -133,16 +125,18 @@ package busymonsters{
 					if(x0==0||x0==w-1||y0==0||y0==h-1){
 					}else{
 						if(
+							x0==6&&y0==3
+							||
 							x0==6&&y0==4
 							||
 							x0==6&&y0==7
 						){
 							tile=map[y0][x0];
 							map[y0][x0]=null;
-							fallingMap[y0][x0]=tile;
-							//tile.falling=true;
-							tile.bounce=false;
+							tile.bounce=4;
 							tile.speed=-4;
+							tile.locked=true;
+							fallingTileV.push(tile);
 						}else{
 							tile=map[y0][x0];
 							clip.tileArea.removeChild(tile);
@@ -177,7 +171,7 @@ package busymonsters{
 			clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
 			clip.stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUp);
 			map=null;
-			fallingMap=null;
+			fallingTileV=null;
 			selectedClip=null;
 			selectedTile=null;
 			Jiaohuan.clear();
@@ -500,7 +494,6 @@ package busymonsters{
 		}
 		
 		private function checkFalling():void{
-			//trace("checkFalling");
 			for(var x0:int=0;x0<w;x0++){
 				var y0:int=h;
 				while(--y0>=0){
@@ -514,11 +507,12 @@ package busymonsters{
 								if(tile.color>-1){
 									if(tile.locked){
 									}else{
-										map[y][x0]=null;
-										fallingMap[y][x0]=tile;
-										//tile.falling=true;
-										tile.bounce=false;
+										y0=y;
+										map[y0][x0]=null;
+										tile.bounce=4;
 										tile.speed=-4;
+										tile.locked=true;
+										fallingTileV.push(tile);
 										continue;
 									}
 								}
@@ -534,95 +528,109 @@ package busymonsters{
 			clip.addEventListener(Event.ENTER_FRAME,falling);
 		}
 		private function falling(...args):void{
-			//trace("-----------------------------------------");
-			var hasFalling:Boolean=false;
+			
+			var holeNumByX0Arr:Array=new Array();
 			for(var x0:int=0;x0<w;x0++){
-				//trace("x0="+x0);
-				
-				///*
-				//如果上面下落速度快的追上下面下落速度慢的，需要把上面下落速度快的调慢
-				y0=h;
-				while(--y0>=0){
-					tile=fallingMap[y0][x0];
-					if(tile){
-						//trace(" y0="+y0,"tile.speed="+tile.speed);
-						while(--y0>=0){
-							upperTile=fallingMap[y0][x0];
-							if(upperTile){
-								if(upperTile.speed>tile.speed){
-									//trace("避免了一次追尾。");
-									upperTile.speed=tile.speed;
-								}
-								if(upperTile.y-upperTile.y0*d>tile.y-tile.y0*d){
-									//trace("避免了一次追尾。");
-									upperTile.y=upperTile.y0*d+tile.y-tile.y0*d;
-								}
-							}else{
-								//trace("中断");
-								break;
-							}
-						}
+				holeNumByX0Arr[x0]=0;
+				for(var y0:int=0;y0<h;y0++){
+					if(map[y0][x0]){
+					}else{
+						holeNumByX0Arr[x0]++;
 					}
 				}
-				//*/
+			}
+			for each(var tile:Tile in fallingTileV){
+				holeNumByX0Arr[tile.x0]--;
+			}
+			for(x0=0;x0<w;x0++){
+				var holeNum:int=holeNumByX0Arr[x0];
+				while(--holeNum>=0){
+					tile=new Tile(currColorArr[Random.ranInt(currColorArr.length)]);
+					clip.tileArea.addChild(tile);
+					tile.x0=x0;
+					tile.y0=-holeNum;
+					tile.x=tile.x0*d;
+					tile.y=tile.y0*d;
+					fallingTileV.push(tile);
+				}
+			}
+			
+			if(fallingTileV.length){
 				
-				var y0:int=h;
-				loop:while(--y0>=0){
-					var tile:Tile=fallingMap[y0][x0];
-					if(tile){
-						tile.y=Math.round(tile.y+tile.speed);
-						if((tile.speed+=g)>maxSpeed){
-							tile.speed=maxSpeed;
-						}
-						
-						if(tile.y>=tile.y0*d){//如 maxSpeed>=d，可能在 tile.speed>=d 时出问题。
-							if(map[tile.y0+1][tile.x0]){//下面有 tile
-								if(tile.bounce){
-									tile.bounce=false;
-									fallingMap[tile.y0][tile.x0]=null;
-									//tile.falling=false;
-									map[tile.y0][tile.x0]=tile;
-									tile.x=tile.x0*d;
-									tile.y=tile.y0*d;
-								}else{
-									tile.bounce=true;
-									tile.speed=-4;
-									tile.y=tile.y0*d;
-									while(--y0>=0){
-										var upperTile:Tile=fallingMap[y0][x0];
-										if(upperTile){
-											upperTile.bounce=true;
-											upperTile.speed=tile.speed;
-											upperTile.y=upperTile.y0*d;
-										}else{
-											break;
-										}
-									}
-									hasFalling=true;
-								}
+				fallingTileV.sort(sortTileByXY);
+				var i:int=fallingTileV.length;
+				while(--i>=0){
+					var tile0:Tile=fallingTileV[i];
+					tile0.y+=tile0.speed;
+					if((tile0.speed+=g)>maxSpeed){
+						tile0.speed=maxSpeed;
+					}
+					if(tile0.y>=tile0.y0*d){
+						if(tile0.y0>0&&map[tile0.y0+1][tile0.x0]){//下面有 tile
+							tile0.y=tile0.y0*d;
+							if(tile0.bounce>0){
+								tile0.speed=-tile0.bounce;
+								tile0.bounce=0;
 							}else{
-								if(fallingMap[tile.y0+1][tile.x0]){
-									throw "xxx";
-								}
-								fallingMap[tile.y0][tile.x0]=null;
-								tile.y0++;
-								fallingMap[tile.y0][tile.x0]=tile;
-								hasFalling=true;
+								//if(map[tile0.y0][tile0.x0]){
+								//	throw "xxx";
+								//}
+								tile0.locked=false;
+								map[tile0.y0][tile0.x0]=tile0;
+								fallingTileV.splice(i,1);
+								tile0=null;
 							}
 						}else{
-							hasFalling=true;
+							tile0.y0++;
 						}
-						
+					}
+					if(tile0){
+						var j:int=fallingTileV.length;
+						while(--j>i){
+							var tile1:Tile=fallingTileV[j];
+							if(tile1.x0==tile0.x0){
+								if(tile1.y-tile0.y<d){
+									//trace("追尾。");
+									tile0.y=tile1.y-d;
+									while(tile0.y<tile0.y0*d){
+										tile0.y0--;
+									}
+									tile0.speed=tile1.speed;
+									tile0.bounce=tile1.bounce;
+								}
+							}
+						}
 					}
 				}
 			}
 			
-			if(hasFalling){
+			if(selectedTile){
+				selectedClip.x=selectedTile.x;
+				selectedClip.y=selectedTile.y;
+			}
+			
+			if(fallingTileV.length){
 			}else{
 				clip.removeEventListener(Event.ENTER_FRAME,falling);
 				checkMatch();
 			}
 			
 		}
+		private function sortTileByXY(tile1:Tile,tile2:Tile):int{
+			//从上到下，从右到左排序
+			if(tile1.y>tile2.y){
+				return 1;
+			}
+			if(tile1.y<tile2.y){
+				return -1;
+			}
+			if(tile1.x<tile2.x){
+				return 1;
+			}else if(tile1.x>tile2.x){
+				return -1;
+			}
+			return 0;//貌似不可能到这里
+		}
+		
 	}
 }
