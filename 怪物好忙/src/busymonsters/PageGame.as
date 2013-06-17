@@ -30,8 +30,9 @@ package busymonsters{
 		
 		private var currColorArr:Array;
 		
-		private static const g:int=2;
 		private static const d:int=50;
+		private static const maxSpeed:int=d*0.8;
+		private static const g:int=2;
 		private var map:Array;
 		private var fallingMap:Array;
 		private var w:int;
@@ -82,7 +83,10 @@ package busymonsters{
 				for(var x0:int=0;x0<w;x0++){
 					
 					if(x0==0||x0==w-1||y0==0||y0==h-1){
-						var tile:Tile=new Tile(-1,false);
+						var tile:Tile=new Tile(
+							-1
+							//,false
+						);
 						tile.mouseEnabled=false;
 					}else{
 						//需要保证左边和上边没有和其连成一直线超过三个的
@@ -104,7 +108,10 @@ package busymonsters{
 							}
 							break;
 						}
-						tile=new Tile(color,false);
+						tile=new Tile(
+							color
+							//,false
+						);
 					}
 					
 					clip.tileArea.addChild(tile);
@@ -119,6 +126,34 @@ package busymonsters{
 			}
 			outputMsg("生成地图耗时："+(getTimer()-t)+"毫秒。");
 			
+			/*
+			//测试个别下落
+			for(y0=0;y0<h;y0++){
+				for(x0=0;x0<w;x0++){
+					if(x0==0||x0==w-1||y0==0||y0==h-1){
+					}else{
+						if(
+							x0==6&&y0==4
+							||
+							x0==6&&y0==7
+						){
+							tile=map[y0][x0];
+							map[y0][x0]=null;
+							fallingMap[y0][x0]=tile;
+							//tile.falling=true;
+							tile.bounce=false;
+							tile.speed=-4;
+						}else{
+							tile=map[y0][x0];
+							clip.tileArea.removeChild(tile);
+							map[y0][x0]=null;
+						}
+					}
+				}
+			}
+			clip.addEventListener(Event.ENTER_FRAME,falling);
+			//*/
+				
 			selectedClip=clip.selectedClip;
 			selectedClip.visible=false;
 			clip.tileArea.addChild(selectedClip);
@@ -129,9 +164,12 @@ package busymonsters{
 			clip.tileArea.addEventListener(MouseEvent.MOUSE_OUT,mouseOut);
 			clip.tileArea.addEventListener(MouseEvent.MOUSE_DOWN,mouseDown);
 			
+			clip.addEventListener(MouseEvent.CLICK,click);
+			
 		}
 		
 		override public function clear():void{
+			clip.removeEventListener(MouseEvent.CLICK,click);
 			clip.removeEventListener(Event.ENTER_FRAME,falling);
 			clip.tileArea.removeEventListener(MouseEvent.MOUSE_OVER,mouseOver);
 			clip.tileArea.removeEventListener(MouseEvent.MOUSE_OUT,mouseOut);
@@ -145,6 +183,13 @@ package busymonsters{
 			Jiaohuan.clear();
 			Xiaochu.clear();
 			super.clear();
+		}
+		private function click(event:MouseEvent):void{
+			switch(event.target){
+				case clip.btnMenu:
+					clip.dispatchEvent(new GameEvent(GameEvent.BACK_TO_MENU));
+				break;
+			}
 		}
 		
 		private function mouseOver(event:MouseEvent):void{
@@ -203,7 +248,7 @@ package busymonsters{
 										if(
 											selectedTile.x0==tile.x0&&(selectedTile.y0-tile.y0==-1||selectedTile.y0-tile.y0==1)
 											||
-											selectedTile.y0==tile.y0&&(selectedTile.x0-tile.x0==-1||selectedTile.x0-tile.x==1)
+											selectedTile.y0==tile.y0&&(selectedTile.x0-tile.x0==-1||selectedTile.x0-tile.x0==1)
 										){
 											//点击相邻的方块，交换
 											isDownSelect=false;
@@ -314,6 +359,7 @@ package busymonsters{
 			var xyMark:Object=new Object();
 			xyMark[tile1.x0+","+tile1.y0]=true;
 			xyMark[tile2.x0+","+tile2.y0]=true;
+			//trace(tile1.x0,tile1.y0,tile2.x0,tile2.y0);
 			var xyArr:Array=checkMatch();
 			if(xyArr){
 				//trace("xyArr.length="+xyArr.length);
@@ -327,6 +373,8 @@ package busymonsters{
 			if(needBack){
 				//还原
 				jiaohuan(tile2,tile1,false);
+			}else{
+				checkFalling();
 			}
 			
 		}
@@ -393,6 +441,7 @@ package busymonsters{
 			}
 			outputMsg("检测匹配耗时 "+(getTimer()-t)+" 毫秒。");
 			
+			//trace("matchArr="+matchArr);
 			if(matchArr.length){
 				var tileEffectArr:Array=new Array();
 				var xyArr:Array=new Array();
@@ -427,37 +476,18 @@ package busymonsters{
 							tileEffect.clip.y=y*d;
 						}
 					}
-				}
-				
+				}//end of for each(arr in matchArr)...
+					
 				Xiaochu.add(tileEffectArr,xyArr,xiaochuComplete);
 				
-				for(y0=0;y0<h-1;y0++){
-					for(x0=0;x0<w;x0++){
-						tile=map[y0][x0];
-						if(tile){
-							if(tile.color>-1){
-								if(tile.locked){
-								}else{
-									if(xyMark[x0+","+(y0+1)]){//下面有刚消产生的孔
-										map[y0][x0]=null;
-										fallingMap[y0][x0]=tile;
-										tile.falling=true;
-										tile.speed=-4;
-									}
-								}
-							}
-						}
-					}
-				}
-				
-				//上面的开始往下掉
-				clip.removeEventListener(Event.ENTER_FRAME,falling);
-				clip.addEventListener(Event.ENTER_FRAME,falling);
+				checkFalling();
 				
 				return xyArr;
 				
-			}
+			}//end of if(matchArr.length)...
+			
 			return null;
+			
 		}
 		
 		private function xiaochuComplete(tileEffectArr:Array,xyArr:Array):void{
@@ -468,19 +498,131 @@ package busymonsters{
 			}
 			//trace("xyArr="+xyArr);
 		}
-		private function falling(...args):void{
-			for(var y0:int=0;y0<h;y0++){
-				for(var x0:int=0;x0<w;x0++){
-					var tile:Tile=fallingMap[y0][x0];
+		
+		private function checkFalling():void{
+			//trace("checkFalling");
+			for(var x0:int=0;x0<w;x0++){
+				var y0:int=h;
+				while(--y0>=0){
+					var tile:Tile=map[y0][x0];
 					if(tile){
-						tile.y=Math.round(tile.y+tile.speed);
-						tile.speed+=g;
+					}else{//孔
+						var y:int=y0;
+						while(--y>=0){
+							tile=map[y][x0];
+							if(tile){
+								if(tile.color>-1){
+									if(tile.locked){
+									}else{
+										map[y][x0]=null;
+										fallingMap[y][x0]=tile;
+										//tile.falling=true;
+										tile.bounce=false;
+										tile.speed=-4;
+										continue;
+									}
+								}
+							}
+							break;
+						}
 					}
 				}
 			}
+			
+			//上面的开始往下掉
+			clip.removeEventListener(Event.ENTER_FRAME,falling);
+			clip.addEventListener(Event.ENTER_FRAME,falling);
 		}
-		
-		
-		
+		private function falling(...args):void{
+			//trace("-----------------------------------------");
+			var hasFalling:Boolean=false;
+			for(var x0:int=0;x0<w;x0++){
+				//trace("x0="+x0);
+				
+				///*
+				//如果上面下落速度快的追上下面下落速度慢的，需要把上面下落速度快的调慢
+				y0=h;
+				while(--y0>=0){
+					tile=fallingMap[y0][x0];
+					if(tile){
+						//trace(" y0="+y0,"tile.speed="+tile.speed);
+						while(--y0>=0){
+							upperTile=fallingMap[y0][x0];
+							if(upperTile){
+								if(upperTile.speed>tile.speed){
+									//trace("避免了一次追尾。");
+									upperTile.speed=tile.speed;
+								}
+								if(upperTile.y-upperTile.y0*d>tile.y-tile.y0*d){
+									//trace("避免了一次追尾。");
+									upperTile.y=upperTile.y0*d+tile.y-tile.y0*d;
+								}
+							}else{
+								//trace("中断");
+								break;
+							}
+						}
+					}
+				}
+				//*/
+				
+				var y0:int=h;
+				loop:while(--y0>=0){
+					var tile:Tile=fallingMap[y0][x0];
+					if(tile){
+						tile.y=Math.round(tile.y+tile.speed);
+						if((tile.speed+=g)>maxSpeed){
+							tile.speed=maxSpeed;
+						}
+						
+						if(tile.y>=tile.y0*d){//如 maxSpeed>=d，可能在 tile.speed>=d 时出问题。
+							if(map[tile.y0+1][tile.x0]){//下面有 tile
+								if(tile.bounce){
+									tile.bounce=false;
+									fallingMap[tile.y0][tile.x0]=null;
+									//tile.falling=false;
+									map[tile.y0][tile.x0]=tile;
+									tile.x=tile.x0*d;
+									tile.y=tile.y0*d;
+								}else{
+									tile.bounce=true;
+									tile.speed=-4;
+									tile.y=tile.y0*d;
+									while(--y0>=0){
+										var upperTile:Tile=fallingMap[y0][x0];
+										if(upperTile){
+											upperTile.bounce=true;
+											upperTile.speed=tile.speed;
+											upperTile.y=upperTile.y0*d;
+										}else{
+											break;
+										}
+									}
+									hasFalling=true;
+								}
+							}else{
+								if(fallingMap[tile.y0+1][tile.x0]){
+									throw "xxx";
+								}
+								fallingMap[tile.y0][tile.x0]=null;
+								tile.y0++;
+								fallingMap[tile.y0][tile.x0]=tile;
+								hasFalling=true;
+							}
+						}else{
+							hasFalling=true;
+						}
+						
+					}
+				}
+			}
+			
+			if(hasFalling){
+			}else{
+				clip.removeEventListener(Event.ENTER_FRAME,falling);
+				checkMatch();
+			}
+			
+		}
 	}
 }

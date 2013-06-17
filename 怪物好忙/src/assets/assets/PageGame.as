@@ -19,6 +19,7 @@ package assets{
 		public var tileArea:Sprite;
 		public var selectedClip:SelectedClip;
 		public var effectArea:Sprite;
+		public var btnMenu:Sprite;
 		public function PageGame(){
 		}
 	}

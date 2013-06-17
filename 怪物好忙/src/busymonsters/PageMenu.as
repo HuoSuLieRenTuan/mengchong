@@ -31,7 +31,7 @@ package busymonsters{
 		}
 		private function click(event:MouseEvent):void{
 			switch(event.target){
-				case clip["btnStart"]:
+				case clip.btnStart:
 					clip.dispatchEvent(new GameEvent(GameEvent.START_GAME));
 				break;
 			}

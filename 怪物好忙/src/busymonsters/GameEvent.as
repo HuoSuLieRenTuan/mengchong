@@ -17,6 +17,7 @@ package busymonsters{
 	
 	public class GameEvent extends Event{
 		public static const START_GAME:String="开始游戏";
+		public static const BACK_TO_MENU:String="返回菜单";
 		public function GameEvent(type:String){
 			super(type);
 		}

@@ -134,6 +134,13 @@ package{
 			currPage["clip"].removeEventListener(GameEvent.START_GAME,startGame);
 			removeCurrPage();
 			addPage(new PageGame());
+			currPage["clip"].addEventListener(GameEvent.BACK_TO_MENU,backToMenu);
+		}
+		private function backToMenu(...args):void{
+			currPage["clip"].removeEventListener(GameEvent.BACK_TO_MENU,backToMenu);
+			removeCurrPage();
+			addPage(new PageMenu());
+			currPage["clip"].addEventListener(GameEvent.START_GAME,startGame);
 		}
 		
 		private function resize(...args):void{
