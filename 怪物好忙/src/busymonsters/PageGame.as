@@ -32,11 +32,10 @@ package busymonsters{
 		
 		private static const g:int=2;
 		private static const d:int=50;
-		private static const MAX_SPEED:int=d*0.4;
 		private var map:Array;
+		private var fallingMap:Array;
 		private var w:int;
 		private var h:int;
-		private var topLine:Array;
 		
 		private var oldMouseX:int;
 		private var oldMouseY:int;
@@ -76,8 +75,10 @@ package busymonsters{
 			var t:int=getTimer();
 			//从上到下，从左到右生成初始地图（初始地图不能有自动消除的）
 			map=new Array(h);
+			fallingMap=new Array(h);
 			for(var y0:int=0;y0<h;y0++){
 				map[y0]=new Array();
+				fallingMap[y0]=new Array();
 				for(var x0:int=0;x0<w;x0++){
 					
 					if(x0==0||x0==w-1||y0==0||y0==h-1){
@@ -108,13 +109,15 @@ package busymonsters{
 					
 					clip.tileArea.addChild(tile);
 					map[y0][x0]=tile;
+					tile.x0=x0;
+					tile.y0=y0;
+					fallingMap[y0][x0]=null;
 					tile.x=x0*d;
 					tile.y=y0*d;
 					
 				}
 			}
 			outputMsg("生成地图耗时："+(getTimer()-t)+"毫秒。");
-			topLine=new Array();
 			
 			selectedClip=clip.selectedClip;
 			selectedClip.visible=false;
@@ -136,7 +139,7 @@ package busymonsters{
 			clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
 			clip.stage.removeEventListener(MouseEvent.MOUSE_UP,mouseUp);
 			map=null;
-			topLine=null;
+			fallingMap=null;
 			selectedClip=null;
 			selectedTile=null;
 			Jiaohuan.clear();
@@ -197,14 +200,10 @@ package busymonsters{
 									isDownSelect=false;
 								}else{
 									if(selectedTile.enabled){
-										var x1:int=Math.round(selectedTile.x/d);
-										var y1:int=Math.round(selectedTile.y/d);
-										var x2:int=Math.round(tile.x/d);
-										var y2:int=Math.round(tile.y/d);
 										if(
-											x1==x2&&(y1-y2==-1||y1-y2==1)
+											selectedTile.x0==tile.x0&&(selectedTile.y0-tile.y0==-1||selectedTile.y0-tile.y0==1)
 											||
-											y1==y2&&(x1-x2==-1||x1-x2==1)
+											selectedTile.y0==tile.y0&&(selectedTile.x0-tile.x0==-1||selectedTile.x0-tile.x==1)
 										){
 											//点击相邻的方块，交换
 											isDownSelect=false;
@@ -239,24 +238,19 @@ package busymonsters{
 							var dMouseX:int=currMouseX-oldMouseX;
 							var dMouseY:int=currMouseY-oldMouseY;
 							if(dMouseX*dMouseX+dMouseY*dMouseY>100){
-								x1=Math.round(selectedTile.x/d);
-								y1=Math.round(selectedTile.y/d);
 								if(dMouseX*dMouseX>dMouseY*dMouseY){
 									if(dMouseX<0){
-										x2=x1-1;
+										tile=map[selectedTile.y0][selectedTile.x0-1];
 									}else{
-										x2=x1+1;
+										tile=map[selectedTile.y0][selectedTile.x0+1];
 									}
-									y2=y1;
 								}else{
-									x2=x1;
 									if(dMouseY<0){
-										y2=y1-1;
+										tile=map[selectedTile.y0-1][selectedTile.x0];
 									}else{
-										y2=y1+1;
+										tile=map[selectedTile.y0+1][selectedTile.x0];
 									}
 								}
-								tile=map[y2][x2];
 								if(tile){
 									if(tile.enabled&&(tile.color>-1)){
 										clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
@@ -300,28 +294,26 @@ package busymonsters{
 		
 		private function jiaohuan(tile1:Tile,tile2:Tile,needBack:Boolean):void{
 			//开始交换
-			var x1:int=Math.round(tile1.x/d);
-			var y1:int=Math.round(tile1.y/d);
-			var x2:int=Math.round(tile2.x/d);
-			var y2:int=Math.round(tile2.y/d);
 			tile1.locked=true;
 			tile2.locked=true;
-			Jiaohuan.add(tile1,tile2,x1*d,y1*d,x2*d,y2*d,needBack,jiaohuanComplete);
+			Jiaohuan.add(tile1,tile2,tile1.x0*d,tile1.y0*d,tile2.x0*d,tile2.y0*d,needBack,jiaohuanComplete);
 		}
 		private function jiaohuanComplete(tile1:Tile,tile2:Tile,needBack:Boolean):void{
 			//交换完毕
-			var x2:int=Math.round(tile1.x/d);
-			var y2:int=Math.round(tile1.y/d);
-			var x1:int=Math.round(tile2.x/d);
-			var y1:int=Math.round(tile2.y/d);
 			tile1.locked=false;
 			tile2.locked=false;
-			map[y2][x2]=tile1;
-			map[y1][x1]=tile2;
+			var xx:int=tile1.x0;
+			var yy:int=tile1.y0;
+			tile1.x0=tile2.x0;
+			tile1.y0=tile2.y0;
+			tile2.x0=xx;
+			tile2.y0=yy;
+			map[tile1.y0][tile1.x0]=tile1;
+			map[tile2.y0][tile2.x0]=tile2;
 			
 			var xyMark:Object=new Object();
-			xyMark[x1+","+y1]=true;
-			xyMark[x2+","+y2]=true;
+			xyMark[tile1.x0+","+tile1.y0]=true;
+			xyMark[tile2.x0+","+tile2.y0]=true;
 			var xyArr:Array=checkMatch();
 			if(xyArr){
 				//trace("xyArr.length="+xyArr.length);
@@ -400,8 +392,9 @@ package busymonsters{
 				}
 			}
 			outputMsg("检测匹配耗时 "+(getTimer()-t)+" 毫秒。");
+			
 			if(matchArr.length){
-				var tileArr:Array=new Array();
+				var tileEffectArr:Array=new Array();
 				var xyArr:Array=new Array();
 				var xyMark:Object=new Object();
 				for each(arr in matchArr){
@@ -419,183 +412,75 @@ package busymonsters{
 									selectedTile=null;
 								}
 							}
-							tile.locked=true;
-							tile.visible=false;
-							var effectTile:Tile=new Tile(tile.color,false);
-							effectTile.mouseEnabled=false;
-							clip.effectArea.addChild(effectTile);
-							tileArr.push(effectTile);
-							effectTile.x=x*d;
-							effectTile.y=y*d;
+							
+							//tile.locked=true;
+							//tile.visible=false;
+							
+							var tileEffect:TileEffect=new TileEffect(tile.color);
+							
+							clip.tileArea.removeChild(tile);
+							map[y][x]=null;
+							
+							clip.effectArea.addChild(tileEffect.clip);
+							tileEffectArr.push(tileEffect);
+							tileEffect.clip.x=x*d;
+							tileEffect.clip.y=y*d;
 						}
 					}
 				}
-				Xiaochu.add(tileArr,xyArr,xiaochuComplete);
+				
+				Xiaochu.add(tileEffectArr,xyArr,xiaochuComplete);
+				
+				for(y0=0;y0<h-1;y0++){
+					for(x0=0;x0<w;x0++){
+						tile=map[y0][x0];
+						if(tile){
+							if(tile.color>-1){
+								if(tile.locked){
+								}else{
+									if(xyMark[x0+","+(y0+1)]){//下面有刚消产生的孔
+										map[y0][x0]=null;
+										fallingMap[y0][x0]=tile;
+										tile.falling=true;
+										tile.speed=-4;
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				//上面的开始往下掉
+				clip.removeEventListener(Event.ENTER_FRAME,falling);
+				clip.addEventListener(Event.ENTER_FRAME,falling);
+				
 				return xyArr;
+				
 			}
 			return null;
 		}
 		
-		private function xiaochuComplete(tileArr:Array,xyArr:Array):void{
+		private function xiaochuComplete(tileEffectArr:Array,xyArr:Array):void{
 			//删除完毕
-			for each(var effectTile:Tile in tileArr){
-				clip.effectArea.removeChild(effectTile);
+			for each(var tileEffect:TileEffect in tileEffectArr){
+				clip.effectArea.removeChild(tileEffect.clip);
+				tileEffect.clear();
 			}
 			//trace("xyArr="+xyArr);
-			for each(var xy:Array in xyArr){//xy可能会有重复的
-				var x:int=xy[0];
-				var y:int=xy[1];
-				map[y][x]=null;
-			}
-			//上面的开始往下掉
-			clip.removeEventListener(Event.ENTER_FRAME,falling);
-			clip.addEventListener(Event.ENTER_FRAME,falling);
 		}
 		private function falling(...args):void{
-			var hasFallingTile:Boolean=false;
-			for(var x0:int=0;x0<w;x0++){
-				var y0:int=h;
-				while(--y0>=0){//必须从下到上，因为下面好多算法依赖于这个。。
-					var tile0:Tile=map[y0][x0];
-					if(tile0){
-					}else{//产生了一个空洞
-						if(topLine[x0]){
-						}else{
-							topLine[x0]=map[0][x0];//暂存顶部 color=-1 的一个 tile
-							var tile:Tile=map[1][x0];
-							if(tile){
-								if(tile.falling){
-									var speed:int=tile.speed;
-								}else{
-									speed=0;
-								}
-							}
-							var color:int=currColorArr[Random.ranInt(currColorArr.length)];
-							tile=new Tile(color,false);
-							tile.falling=true;
-							tile.speed=speed;
-							clip.tileArea.addChild(tile);
-							map[0][x0]=tile;
-							tile.x=x0*d;
-							tile.y=0*d;
-						}
-						
-						//同步一下速度，因为如果上面的比下面的速度快，很可能会压上
-						var maxSpeed:int=0;
-						var maxRest:int=0;
-						var y:int=-1;
-						while(++y<y0){
-							tile=map[y][x0];
-							if(tile){
-								if(tile.color>-1){
-									if(tile.locked){
-										maxSpeed=0;
-										maxRest=0;
-									}else{
-										if(tile.falling){
-											var rest:int=tile.y-y*d;
-											if(tile.speed<maxSpeed){
-												tile.speed=maxSpeed;
-											}else if(maxSpeed<tile.speed){
-												maxSpeed=tile.speed;
-											}
-											if(rest<maxRest){
-												tile.y=y*d+maxRest;
-											}else if(maxRest<rest){
-												maxRest=rest;
-											}
-										}
-									}
-								}
-							}
-						}
-						
-						y=y0;
-						while(--y>=0){
-							tile=map[y][x0];
-							if(tile){
-								if(tile.locked){
-									break;
-								}
-								if(tile.color>-1){
-									if(tile.falling){
-									}else{
-										tile.speed=0;
-										tile.falling=true;
-									}
-									tile.speed+=g;
-									if(tile.speed>MAX_SPEED){
-										tile.speed=MAX_SPEED;
-									}
-									tile.y+=tile.speed;
-									var dy:int=(y+1)*d-tile.y;
-									if(dy<=0){
-										var hasHole:Boolean=false;
-										var y1:int=y+1;
-										while(++y1<h){
-											var tile1:Tile=map[y1][x0];
-											if(tile1){
-												if(tile1.locked){
-													break;
-												}
-											}else{
-												hasHole=true;
-												break;
-											}
-										}
-										if(hasHole){
-										}else{
-											//下面已经没有空洞了
-											tile.y=(y+1)*d;
-											tile.falling=false;
-										}
-										map[y][x0]=null;
-										if(map[y+1][x0]){
-											throw "xxx";
-										}
-										map[y+1][x0]=tile;
-										if(y==0){
-											map[0][x0]=topLine[x0];
-											topLine[x0]=null;
-										}
-									}else{
-										hasFallingTile=true;
-									}
-								}
-								if(selectedTile){
-									if(selectedTile==tile){
-										selectedClip.x=selectedTile.x;
-										selectedClip.y=selectedTile.y;
-									}
-								}
-							}
-						}
-						break;
+			for(var y0:int=0;y0<h;y0++){
+				for(var x0:int=0;x0<w;x0++){
+					var tile:Tile=fallingMap[y0][x0];
+					if(tile){
+						tile.y=Math.round(tile.y+tile.speed);
+						tile.speed+=g;
 					}
 				}
 			}
-			
-			if(hasFallingTile){
-			}else{
-				loop:for(y0=0;y0<h;y0++){
-					for(x0=0;x0<w;x0++){
-						if(map[y0][x0]){
-						}else{
-							hasFallingTile=true;
-							break loop;
-						}
-					}
-				}
-			}
-			
-			if(hasFallingTile){
-			}else{
-				clip.removeEventListener(Event.ENTER_FRAME,falling);
-				outputMsg("下落完毕");
-				checkMatch();
-			}
-			
 		}
+		
+		
 		
 	}
 }

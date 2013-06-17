@@ -7,8 +7,6 @@ Xiaochu
 */
 
 package busymonsters{
-	import com.greensock.TweenMax;
-	import com.greensock.easing.Back;
 	
 	import flash.display.*;
 	import flash.events.*;
@@ -24,21 +22,24 @@ package busymonsters{
 		
 		public static function clear():void{
 			for each(var xiaochu:Xiaochu in xiaochuV){
+				for each(var tileEffect:TileEffect in xiaochu.tileEffectArr){
+					tileEffect.clear();
+				}
 				xiaochu.clear();
 			}
 			xiaochuV.length=0;
 		}
 		
-		public static function add(tileArr:Array,xyArr:Array,onComplete:Function):Xiaochu{
+		public static function add(tileEffectArr:Array,xyArr:Array,onComplete:Function):Xiaochu{
 			
 			var xiaochu:Xiaochu=new Xiaochu();
-			xiaochu.num=tileArr.length;
+			xiaochu.num=tileEffectArr.length;
 			xiaochu.onComplete=onComplete;
-			xiaochu.tileArr=tileArr;
+			xiaochu.tileEffectArr=tileEffectArr;
 			xiaochu.xyArr=xyArr;
 			
-			for each(var tile:Tile in tileArr){
-				TweenMax.to(tile,8,{scaleX:0.2,scaleY:0.2,alpha:0,ease:Back.easeIn,useFrames:true,onComplete:xiaochu.complete});
+			for each(var tileEffect:TileEffect in tileEffectArr){
+				tileEffect.onComplete=xiaochu.complete;
 			}
 			
 			xiaochuV.push(xiaochu);
@@ -48,7 +49,7 @@ package busymonsters{
 		private static function complete(xiaochu:Xiaochu):void{
 			
 			var onComplete:Function=xiaochu.onComplete;
-			var tileArr:Array=xiaochu.tileArr;
+			var tileEffectArr:Array=xiaochu.tileEffectArr;
 			var xyArr:Array=xiaochu.xyArr;
 			
 			xiaochu.clear();
@@ -57,14 +58,14 @@ package busymonsters{
 			
 			if(onComplete==null){
 			}else{
-				onComplete(tileArr,xyArr);
+				onComplete(tileEffectArr,xyArr);
 			}
 			
 		}
 		
 		private var num:int;
 		private var onComplete:Function;
-		private var tileArr:Array;
+		private var tileEffectArr:Array;
 		private var xyArr:Array;
 		private function complete():void{
 			if(--num<=0){
@@ -73,7 +74,7 @@ package busymonsters{
 		}
 		private function clear():void{
 			onComplete=null;
-			tileArr=null;
+			tileEffectArr=null;
 			xyArr=null;
 		}
 	}

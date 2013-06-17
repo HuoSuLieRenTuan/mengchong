@@ -22,19 +22,20 @@ package busymonsters{
 	
 	public class Tile extends Sprite{
 		
-		private static const TileClassV:Vector.<Class>=new <Class>[assets.Tile_0_0,assets.Tile_1_0,assets.Tile_2_0,assets.Tile_3_0,assets.Tile_4_0,assets.Tile_5_0];
-		
 		private var clip:assets.Tile;
 		
 		public var color:int;
 		public var speed:int;
+		
+		public var x0:int;
+		public var y0:int;
 		
 		public function Tile(_color:int,_falling:Boolean){
 			this.buttonMode=true;
 			this.mouseChildren=false;
 			color=_color;
 			if(color>-1){
-				this.addChild(clip=new (TileClassV[color])());
+				this.addChild(clip=getTileClip(color));
 			}
 			locked=false;
 			falling=_falling;
