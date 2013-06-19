@@ -41,6 +41,10 @@ package busymonsters{
 			}
 			locked=false;
 			
+			//this.graphics.clear();
+			//this.graphics.lineStyle(1,0xff0000);
+			//this.graphics.drawRect(-25,-25,50,50);
+			
 			/*
 			test_txt=new TextField();
 			this.addChild(test_txt);
@@ -62,6 +66,9 @@ package busymonsters{
 			return __selected;
 		}
 		public function set selected(_selected:Boolean):void{
+			if(__selected==_selected){
+				return;
+			}
 			__selected=_selected;
 			if(__selected){
 				TweenMax.to(clip,8,{scaleX:1.1,scaleY:1.1,colorMatrixFilter:{saturation:1.3},useFrames:true});

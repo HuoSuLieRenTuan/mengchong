@@ -20,6 +20,7 @@ package assets{
 		public var selectedClip:SelectedClip;
 		public var effectArea:Sprite;
 		public var btnMenu:Sprite;
+		public var btnPlayRecords:Sprite;
 		public function PageGame(){
 		}
 	}

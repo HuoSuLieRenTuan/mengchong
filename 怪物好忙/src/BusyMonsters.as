@@ -141,7 +141,18 @@ package{
 		private function startGame(...args):void{
 			currPage["clip"].removeEventListener(GameEvent.START_GAME,startGame);
 			removeCurrPage();
-			addPage(new PageGame());
+			
+			if(this.loaderInfo.parameters.currColorArr){
+				var currColorArr:Array=this.loaderInfo.parameters.currColorArr.split(/\D+/);
+				var i:int=currColorArr.length;
+				while(--i>=0){
+					currColorArr[i]=int(currColorArr[i]);
+				}
+			}else{
+				currColorArr=null;
+			}
+			
+			addPage(new PageGame(currColorArr));
 			currPage["clip"].addEventListener(GameEvent.BACK_TO_MENU,backToMenu);
 		}
 		private function backToMenu(...args):void{

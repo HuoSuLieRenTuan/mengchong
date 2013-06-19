@@ -31,7 +31,7 @@ package busymonsters{
 		private var currColorArr:Array;
 		
 		private static const d:int=50;
-		private static const maxSpeed:int=d*0.8;
+		private static const maxSpeed:int=d*0.5-1;
 		private static const g:int=2;
 		private var map:Array;
 		private var fallingTileV:Vector.<Tile>;//按物理定律掉落即可
@@ -41,7 +41,7 @@ package busymonsters{
 		private var oldMouseX:int;
 		private var oldMouseY:int;
 		
-		public function PageGame(){
+		public function PageGame(_currColorArr:Array){
 			
 			super(new assets.PageGame());
 			
@@ -50,9 +50,13 @@ package busymonsters{
 				1
 			);
 			
-			//currColorArr=[0,1,2];
-			//currColorArr=[3,4,5];
-			currColorArr=[0,1,2,3,4,5];
+			if(_currColorArr){
+				currColorArr=_currColorArr;
+			}else{
+				//currColorArr=[0,1,2];
+				currColorArr=[0,1,2,3];
+				//currColorArr=[0,1,2,3,4,5];
+			}
 			
 			//外围是一圈 color=-1 的 Tile
 			w=8+2;
@@ -158,6 +162,7 @@ package busymonsters{
 			clip.tileArea.addEventListener(MouseEvent.MOUSE_OUT,mouseOut);
 			clip.tileArea.addEventListener(MouseEvent.MOUSE_DOWN,mouseDown);
 			
+			clip.btnPlayRecords.visible=false;
 			clip.addEventListener(MouseEvent.CLICK,click);
 			
 		}
@@ -180,6 +185,9 @@ package busymonsters{
 		}
 		private function click(event:MouseEvent):void{
 			switch(event.target){
+				case clip.btnPlayRecords:
+					//
+				break;
 				case clip.btnMenu:
 					clip.dispatchEvent(new GameEvent(GameEvent.BACK_TO_MENU));
 				break;
@@ -335,6 +343,8 @@ package busymonsters{
 			//开始交换
 			tile1.locked=true;
 			tile2.locked=true;
+			clip.tileArea.addChild(tile1);
+			clip.tileArea.addChild(tile2);
 			Jiaohuan.add(tile1,tile2,tile1.x0*d,tile1.y0*d,tile2.x0*d,tile2.y0*d,needBack,jiaohuanComplete);
 		}
 		private function jiaohuanComplete(tile1:Tile,tile2:Tile,needBack:Boolean):void{
@@ -529,28 +539,44 @@ package busymonsters{
 		}
 		private function falling(...args):void{
 			
-			var holeNumByX0Arr:Array=new Array();
+			var numByX0Arr:Array=new Array();
 			for(var x0:int=0;x0<w;x0++){
-				holeNumByX0Arr[x0]=0;
+				numByX0Arr[x0]=0;
 				for(var y0:int=0;y0<h;y0++){
 					if(map[y0][x0]){
-					}else{
-						holeNumByX0Arr[x0]++;
+						numByX0Arr[x0]++;
 					}
 				}
 			}
-			for each(var tile:Tile in fallingTileV){
-				holeNumByX0Arr[tile.x0]--;
+			
+			var mark:Object=new Object();
+			for each(var tile0:Tile in fallingTileV){
+				numByX0Arr[tile0.x0]++;
+				if(mark[tile0.x0+","+tile0.y0]){
+					throw "xxx";
+				}
+				mark[tile0.x0+","+tile0.y0]=tile0;
 			}
+			
 			for(x0=0;x0<w;x0++){
-				var holeNum:int=holeNumByX0Arr[x0];
-				while(--holeNum>=0){
-					tile=new Tile(currColorArr[Random.ranInt(currColorArr.length)]);
+				if(mark[x0+",1"]){
+				}else if(numByX0Arr[x0]<h){
+					var tile:Tile=new Tile(currColorArr[Random.ranInt(currColorArr.length)]);
 					clip.tileArea.addChild(tile);
 					tile.x0=x0;
-					tile.y0=-holeNum;
+					tile.y0=1;
 					tile.x=tile.x0*d;
-					tile.y=tile.y0*d;
+					tile0=mark[x0+",2"];
+					if(tile0){
+						tile.y=tile0.y-d;
+						tile.bounce=tile0.bounce;
+						tile.speed=tile0.speed;
+					}else{
+						tile.y=0;
+						tile.bounce=4;
+						tile.speed=-4;
+					}
+					tile.locked=true;
 					fallingTileV.push(tile);
 				}
 			}
@@ -558,50 +584,63 @@ package busymonsters{
 			if(fallingTileV.length){
 				
 				fallingTileV.sort(sortTileByXY);
+				
 				var i:int=fallingTileV.length;
 				while(--i>=0){
-					var tile0:Tile=fallingTileV[i];
-					tile0.y+=tile0.speed;
+					tile0=fallingTileV[i];
 					if((tile0.speed+=g)>maxSpeed){
 						tile0.speed=maxSpeed;
 					}
-					if(tile0.y>=tile0.y0*d){
-						if(tile0.y0>0&&map[tile0.y0+1][tile0.x0]){//下面有 tile
+					tile0.y+=tile0.speed;
+				}
+				
+				i=fallingTileV.length;
+				while(--i>=0){
+					tile0=fallingTileV[i];
+					if(map[tile0.y0][tile0.x0]){
+						throw "xxx";
+					}
+					if(tile0.y>tile0.y0*d){
+						if(map[tile0.y0+1][tile0.x0]){
+							tile0.x=tile0.x0*d;
 							tile0.y=tile0.y0*d;
 							if(tile0.bounce>0){
 								tile0.speed=-tile0.bounce;
 								tile0.bounce=0;
 							}else{
-								//if(map[tile0.y0][tile0.x0]){
-								//	throw "xxx";
-								//}
-								tile0.locked=false;
 								map[tile0.y0][tile0.x0]=tile0;
+								tile0.locked=false;
 								fallingTileV.splice(i,1);
 								tile0=null;
 							}
 						}else{
 							tile0.y0++;
+							if(map[tile0.y0][tile0.x0]){
+								throw "xxx";
+							}
 						}
 					}
 					if(tile0){
-						var j:int=fallingTileV.length;
-						while(--j>i){
-							var tile1:Tile=fallingTileV[j];
-							if(tile1.x0==tile0.x0){
-								if(tile1.y-tile0.y<d){
-									//trace("追尾。");
-									tile0.y=tile1.y-d;
-									while(tile0.y<tile0.y0*d){
-										tile0.y0--;
-									}
-									tile0.speed=tile1.speed;
-									tile0.bounce=tile1.bounce;
+						var j:int=i;
+						while(--j>=0){
+							//调整上面的所有 tile
+							tile=fallingTileV[j];
+							if(tile.x0==tile0.x0){
+								if(tile.y+d>tile0.y){
+									tile.y0=tile0.y0-1;
+									//tile.alpha=0.5;
+									//trace("tile.y0="+(tile.y0+1)+"==>"+tile.y0);
+									tile.y=tile0.y-d;
+									tile.speed=tile0.speed;
+									tile.bounce=tile0.bounce;
+									//clip.removeEventListener(Event.ENTER_FRAME,falling);
+									//return;
 								}
 							}
 						}
 					}
 				}
+				
 			}
 			
 			if(selectedTile){
@@ -631,6 +670,5 @@ package busymonsters{
 			}
 			return 0;//貌似不可能到这里
 		}
-		
 	}
 }
