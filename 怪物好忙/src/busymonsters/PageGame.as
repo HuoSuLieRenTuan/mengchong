@@ -44,7 +44,7 @@ package busymonsters{
 		private var oldMouseY:int;
 		
 		private var recorder:Recorder;
-		private var checkMouseUp:Boolean;
+		private var checkingMouse:Boolean;
 		
 		public function PageGame(_currColorArr:Array){
 			
@@ -177,29 +177,23 @@ package busymonsters{
 			
 			recorder=new Recorder();
 			var params:Object={
-				step:recorder_step,
-				mouseOver:recorder_mouseOver,
-				mouseOut:recorder_mouseOut,
-				mouseDown:recorder_mouseDown,
-				mouseUp:recorder_mouseUp
+				
 			};
 			if(record_dataArr){
 				clip.mouseChildren=false;
 				trace("replay start-----------------------------");
-				recorder.replay(clip.stage,replayComplete,params,record_dataArr);
+				recorder.replay(clip.stage,replayComplete,recorder_step,recorder_mouseOver,recorder_mouseOut,recorder_mouseDown,recorder_mouseUp,recorder_mouseMove,null,null,record_dataArr);
 			}else{
 				clip.mouseChildren=true;
 				trace("record start-----------------------------");
-				recorder.record(clip.stage,recordComplete,params);
+				recorder.record(clip.stage,recordComplete,recorder_step,recorder_mouseOver,recorder_mouseOut,recorder_mouseDown,recorder_mouseUp,recorder_mouseMove,null,null);
 			}
 			
 		}
 		
 		private static var record_dataArr:Array;
 		private function recorder_step():void{
-			if(recorder.keyIsDown(32)){
-				trace("空格");
-			}
+			
 		}
 		private function recorder_mouseOver():Boolean{
 			//if(正在游戏){
@@ -241,16 +235,17 @@ package busymonsters{
 		}
 		private function recorder_mouseDown():Boolean{
 			//if(正在游戏){
-				var x0:int=recorder.getInt(Math.round(clip.tileArea.mouseX/d));
-				var y0:int=recorder.getInt(Math.round(clip.tileArea.mouseY/d));
+				var mouseX:int=recorder.getInt(Math.round(clip.tileArea.mouseX));
+				var mouseY:int=recorder.getInt(Math.round(clip.tileArea.mouseY));
+				var x0:int=Math.round(mouseX/d);
+				var y0:int=Math.round(mouseY/d);
 				if(x0>=1&&x0<w-1&&y0>=1&&y0<h-1){
 					var tile:Tile=map[y0][x0];
 					if(tile&&tile.mouseEnabled){
-						clip.stage.addEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
-						checkMouseUp=true;
-						oldMouseX=clip.tileArea.mouseX;
-						oldMouseY=clip.tileArea.mouseY;
-						changeSelection(tile,MouseEvent.MOUSE_DOWN);
+						checkingMouse=true;
+						oldMouseX=mouseX;
+						oldMouseY=mouseY;
+						changeSelection(tile,MouseEvent.MOUSE_DOWN,mouseX,mouseY);
 						return true;
 					}
 				}
@@ -259,9 +254,11 @@ package busymonsters{
 		}
 		private function recorder_mouseUp():Boolean{
 			//if(正在游戏){
-				if(checkMouseUp){
-					var x0:int=recorder.getInt(Math.round(clip.tileArea.mouseX/d));
-					var y0:int=recorder.getInt(Math.round(clip.tileArea.mouseY/d));
+				if(checkingMouse){
+					var mouseX:int=recorder.getInt(Math.round(clip.tileArea.mouseX));
+					var mouseY:int=recorder.getInt(Math.round(clip.tileArea.mouseY));
+					var x0:int=Math.round(mouseX/d);
+					var y0:int=Math.round(mouseY/d);
 					if(x0>=1&&x0<w-1&&y0>=1&&y0<h-1){
 						var tile:Tile=map[y0][x0];
 						if(tile&&tile.mouseEnabled){
@@ -271,14 +268,36 @@ package busymonsters{
 					}else{
 						tile=null;
 					}
-					clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
-					checkMouseUp=false;
-					changeSelection(tile,MouseEvent.MOUSE_UP);
+					checkingMouse=false;
+					changeSelection(tile,MouseEvent.MOUSE_UP,mouseX,mouseY);
 					return true;
 				}
 			//}
 			return false;
 		}
+		private function recorder_mouseMove():Boolean{
+			//if(正在游戏){
+				if(checkingMouse){
+					var mouseX:int=recorder.getInt(Math.round(clip.tileArea.mouseX));
+					var mouseY:int=recorder.getInt(Math.round(clip.tileArea.mouseY));
+					var x0:int=Math.round(mouseX/d);
+					var y0:int=Math.round(mouseY/d);
+					if(x0>=1&&x0<w-1&&y0>=1&&y0<h-1){
+						var tile:Tile=map[y0][x0];
+						if(tile&&tile.mouseEnabled){
+						}else{
+							tile=null;
+						}
+					}else{
+						tile=null;
+					}
+					changeSelection(tile,MouseEvent.MOUSE_MOVE,mouseX,mouseY);
+					return true;
+				}
+			//}
+			return false;
+		}
+		
 		private function recordComplete():void{
 			//trace("recordComplete");
 			record_dataArr=recorder.dataArr;
@@ -295,7 +314,6 @@ package busymonsters{
 			recorder=null;
 			clip.removeEventListener(MouseEvent.CLICK,click);
 			clip.removeEventListener(Event.ENTER_FRAME,falling);
-			clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
 			map=null;
 			fallingTileV=null;
 			selectedClip=null;
@@ -316,11 +334,7 @@ package busymonsters{
 			}
 		}
 		
-		private function mouseMove(event:MouseEvent):void{
-			changeSelection(event.target as Tile,MouseEvent.MOUSE_MOVE);
-		}
-		
-		private function changeSelection(tile:Tile,type:String):void{
+		private function changeSelection(tile:Tile,type:String,mouseX:int,mouseY:int):void{
 			
 			//outputMsg(type);
 			
@@ -341,8 +355,7 @@ package busymonsters{
 										){
 											//点击相邻的方块，交换
 											isDownSelect=false;
-											clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
-											checkMouseUp=false;
+											checkingMouse=false;
 											jiaohuan(selectedTile,tile,true);
 											selectedTile=null;
 										}else{
@@ -367,10 +380,8 @@ package busymonsters{
 				case MouseEvent.MOUSE_MOVE:
 					if(selectedTile){
 						if(selectedTile.enabled){
-							var currMouseX:int=clip.tileArea.mouseX;
-							var currMouseY:int=clip.tileArea.mouseY;
-							var dMouseX:int=currMouseX-oldMouseX;
-							var dMouseY:int=currMouseY-oldMouseY;
+							var dMouseX:int=mouseX-oldMouseX;
+							var dMouseY:int=mouseY-oldMouseY;
 							if(dMouseX*dMouseX+dMouseY*dMouseY>100){
 								if(dMouseX*dMouseX>dMouseY*dMouseY){
 									if(dMouseX<0){
@@ -387,8 +398,7 @@ package busymonsters{
 								}
 								if(tile){
 									if(tile.enabled&&(tile.color>-1)){
-										clip.stage.removeEventListener(MouseEvent.MOUSE_MOVE,mouseMove);
-										checkMouseUp=false;
+										checkingMouse=false;
 										jiaohuan(selectedTile,tile,true);
 										selectedTile=null;
 									}
