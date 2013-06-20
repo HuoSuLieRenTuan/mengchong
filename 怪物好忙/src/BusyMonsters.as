@@ -13,6 +13,8 @@ package{
 	import busymonsters.GameEvent;
 	import busymonsters.PageGame;
 	import busymonsters.PageMenu;
+	import busymonsters.RecordPane;
+	import busymonsters.sol;
 	
 	import flash.display.*;
 	import flash.events.*;
@@ -24,11 +26,15 @@ package{
 	import flash.ui.*;
 	import flash.utils.*;
 	
+	import zero.ui.Sol;
+	
 	public class BusyMonsters extends Sprite{
 		
 		private var main:Main;
 		
 		private var currPage:BasePage;
+		
+		private var recordPane:RecordPane;
 		
 		private var wid0:int;
 		private var hei0:int;
@@ -93,6 +99,8 @@ package{
 			stage.align=StageAlign.TOP_LEFT;
 			stage.scaleMode=StageScaleMode.NO_SCALE;
 			
+			sol=new Sol("BusyMonsters","2013年06月06日 09:44:47");
+			
 			this.addChildAt(main=new Main(),0);
 			
 			/*//不是很准确地区分PC和移动设备
@@ -128,8 +136,15 @@ package{
 			
 			stage.addEventListener(Event.RESIZE,resize);
 			
+			recordPane=new RecordPane(main.recordPane);
+			recordPane.clip.mouseChildren=true;
+			main.addEventListener(GameEvent.SHOW_RECORD_PANE,showRecordPane);
+			recordPane.clip.addEventListener(GameEvent.HIDE_RECORD_PANE,hideRecordPane);
+			hideRecordPane();
+			
+			recordPane.clip.addEventListener(GameEvent.PLAY_RECORD,playRecord);
+			
 			addPage(new PageMenu());
-			currPage["clip"].addEventListener(GameEvent.START_GAME,startGame);
 			
 			startGame();
 			
@@ -138,8 +153,33 @@ package{
 			
 		}
 		
+		private function showRecordPane(...args):void{
+			if(currPage is PageGame){
+				(currPage as PageGame).pause();
+			}
+			recordPane.show();
+		}
+		private function hideRecordPane(...args):void{
+			recordPane.hide();
+			if(currPage is PageGame){
+				(currPage as PageGame).resume();
+			}
+		}
+		private function playRecord(event:GameEvent):void{
+			recordPane.hide();
+			removeCurrPage();
+			var record_dataArr:Array=sol.getValue(event.data).split(",");
+			var i:int=record_dataArr.length;
+			while(--i>=0){
+				if(/^\d+$/.test(record_dataArr[i])){
+					record_dataArr[i]=int(record_dataArr[i]);
+				}
+			}
+			trace("record_dataArr="+record_dataArr);
+			addPage(new PageGame(null,record_dataArr));
+		}
+		
 		private function startGame(...args):void{
-			currPage["clip"].removeEventListener(GameEvent.START_GAME,startGame);
 			removeCurrPage();
 			
 			if(this.loaderInfo.parameters.currColorArr){
@@ -152,14 +192,11 @@ package{
 				currColorArr=null;
 			}
 			
-			addPage(new PageGame(currColorArr));
-			currPage["clip"].addEventListener(GameEvent.BACK_TO_MENU,backToMenu);
+			addPage(new PageGame(currColorArr,null));
 		}
 		private function backToMenu(...args):void{
-			currPage["clip"].removeEventListener(GameEvent.BACK_TO_MENU,backToMenu);
 			removeCurrPage();
 			addPage(new PageMenu());
-			currPage["clip"].addEventListener(GameEvent.START_GAME,startGame);
 		}
 		
 		private function resize(...args):void{
@@ -168,8 +205,8 @@ package{
 			var hei:int=Math.ceil(stage.stageHeight/main.scaleY);
 			outputMsg("wid="+wid+"，hei="+hei);
 			
-			main.bg.width=wid;
-			main.bg.height=hei;
+			main.bg.width=recordPane.clip.bg.width=wid;
+			main.bg.height=recordPane.clip.bg.height=hei;
 			
 			currPage.resize(wid0,hei0,wid,hei);
 			
@@ -183,12 +220,28 @@ package{
 			
 			currPage=page;
 			main.container.addChild(currPage["clip"]);
+			switch(currPage["constructor"]){
+				case PageMenu:
+					currPage["clip"].addEventListener(GameEvent.START_GAME,startGame);
+				break;
+				case PageGame:
+					currPage["clip"].addEventListener(GameEvent.BACK_TO_MENU,backToMenu);
+				break;
+			}
 			
 			resize();
 			
 		}
 		private function removeCurrPage():void{
 			if(currPage){
+				switch(currPage["constructor"]){
+					case PageMenu:
+						currPage["clip"].removeEventListener(GameEvent.START_GAME,startGame);
+					break;
+					case PageGame:
+						currPage["clip"].removeEventListener(GameEvent.BACK_TO_MENU,backToMenu);
+					break;
+				}
 				var clip:Sprite=currPage["clip"];
 				currPage.clear();
 				currPage=null;

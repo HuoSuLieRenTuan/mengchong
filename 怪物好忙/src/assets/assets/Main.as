@@ -18,6 +18,7 @@ package assets{
 	public class Main extends Sprite{
 		public var bg:Sprite;
 		public var container:Sprite;
+		public var recordPane:RecordPane;
 		public function Main(){
 		}
 	}

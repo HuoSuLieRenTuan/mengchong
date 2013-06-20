@@ -16,6 +16,7 @@ package assets{
 	import flash.utils.*;
 	
 	public class PageMenu extends Sprite{
+		public var btnPlayRecords:Sprite;
 		public var btnStart:Sprite;
 		public function PageMenu(){
 		}

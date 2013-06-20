@@ -31,8 +31,11 @@ package busymonsters{
 		}
 		private function click(event:MouseEvent):void{
 			switch(event.target){
+				case clip.btnPlayRecords:
+					clip.dispatchEvent(new GameEvent(GameEvent.SHOW_RECORD_PANE,true,false,null));
+				break;
 				case clip.btnStart:
-					clip.dispatchEvent(new GameEvent(GameEvent.START_GAME));
+					clip.dispatchEvent(new GameEvent(GameEvent.START_GAME,false,false,null));
 				break;
 			}
 		}

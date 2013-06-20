@@ -44,13 +44,15 @@ package busymonsters{
 		private var oldMouseY:int;
 		
 		private var recorder:Recorder;
+		private var record_dataArr:Array;
 		private var checkingMouse:Boolean;
 		
-		public function PageGame(_currColorArr:Array){
+		public function PageGame(_currColorArr:Array,_record_dataArr:Array){
 			
 			super(new assets.PageGame());
 			
 			currColorArr=_currColorArr;
+			record_dataArr=_record_dataArr;
 			
 			clip.addEventListener(Event.ADDED_TO_STAGE,added);
 		}
@@ -170,28 +172,21 @@ package busymonsters{
 			clip.tileArea.addChild(selectedClip);
 			selectedClip.mouseEnabled=selectedClip.mouseChildren=false;
 			
-			clip.tileArea.mouseChildren=true;
-			
-			clip.btnPlayRecords.visible=false;
 			clip.addEventListener(MouseEvent.CLICK,click);
 			
 			recorder=new Recorder();
-			var params:Object={
-				
-			};
 			if(record_dataArr){
-				clip.mouseChildren=false;
+				clip.tileArea.mouseChildren=false;
 				trace("replay start-----------------------------");
 				recorder.replay(clip.stage,replayComplete,recorder_step,recorder_mouseOver,recorder_mouseOut,recorder_mouseDown,recorder_mouseUp,recorder_mouseMove,null,null,record_dataArr);
 			}else{
-				clip.mouseChildren=true;
+				clip.tileArea.mouseChildren=true;
 				trace("record start-----------------------------");
 				recorder.record(clip.stage,recordComplete,recorder_step,recorder_mouseOver,recorder_mouseOut,recorder_mouseDown,recorder_mouseUp,recorder_mouseMove,null,null);
 			}
 			
 		}
 		
-		private static var record_dataArr:Array;
 		private function recorder_step():void{
 			
 		}
@@ -202,7 +197,7 @@ package busymonsters{
 				if(x0>=1&&x0<w-1&&y0>=1&&y0<h-1){
 					var tile:Tile=map[y0][x0];
 					if(tile&&tile.mouseEnabled){
-						outputMsg("recorder_mouseOver");
+						//outputMsg("recorder_mouseOver");
 						if(mouseOverTile){
 							mouseOverTile.selected=false;
 							mouseOverTile=null;
@@ -218,7 +213,7 @@ package busymonsters{
 		private function recorder_mouseOut():Boolean{
 			//if(正在游戏){
 				if(mouseOverTile){
-					outputMsg("recorder_mouseOut，mouseOverTile=("+mouseOverTile.x0+","+mouseOverTile.y0+")");
+					//outputMsg("recorder_mouseOut，mouseOverTile=("+mouseOverTile.x0+","+mouseOverTile.y0+")");
 					if(selectedTile){
 						if(selectedTile==mouseOverTile){
 						}else{
@@ -299,19 +294,20 @@ package busymonsters{
 		}
 		
 		private function recordComplete():void{
-			//trace("recordComplete");
-			record_dataArr=recorder.dataArr;
-			trace("record_dataArr="+record_dataArr);
-			clip.dispatchEvent(new GameEvent(GameEvent.BACK_TO_MENU));
+			trace("recordComplete");
+			trace("recorder.dataArr="+recorder.dataArr);
+			sol.setValue("record_"+new Date().time+"_"+(1000000+int(Math.random()*1000000)).toString().substr(1),recorder.dataArr.toString());
+			clip.dispatchEvent(new GameEvent(GameEvent.BACK_TO_MENU,false,false,null));
 		}
 		private function replayComplete():void{
-			//trace("replayComplete");
-			clip.dispatchEvent(new GameEvent(GameEvent.BACK_TO_MENU));
+			trace("replayComplete");
+			clip.dispatchEvent(new GameEvent(GameEvent.BACK_TO_MENU,false,false,null));
 		}
 		
 		override public function clear():void{
 			currColorArr=null;
 			recorder=null;
+			record_dataArr=null;
 			clip.removeEventListener(MouseEvent.CLICK,click);
 			clip.removeEventListener(Event.ENTER_FRAME,falling);
 			map=null;
@@ -326,7 +322,7 @@ package busymonsters{
 		private function click(event:MouseEvent):void{
 			switch(event.target){
 				case clip.btnPlayRecords:
-					//
+					clip.dispatchEvent(new GameEvent(GameEvent.SHOW_RECORD_PANE,true,false,null));
 				break;
 				case clip.btnMenu:
 					recorder.halt();
@@ -636,6 +632,10 @@ package busymonsters{
 		}
 		private function falling(...args):void{
 			
+			if(recorder.isPause()){
+				return;
+			}
+			
 			var numByX0Arr:Array=new Array();
 			for(var x0:int=0;x0<w;x0++){
 				numByX0Arr[x0]=0;
@@ -767,5 +767,13 @@ package busymonsters{
 			}
 			return 0;//貌似不可能到这里
 		}
+		
+		public function pause():void{
+			recorder.pause();
+		}
+		public function resume():void{
+			recorder.resume();
+		}
+		
 	}
 }

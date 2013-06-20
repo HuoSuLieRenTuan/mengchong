@@ -16,10 +16,19 @@ package busymonsters{
 	import flash.utils.*;
 	
 	public class GameEvent extends Event{
+		
+		public static const SHOW_RECORD_PANE:String="显示录像面板";
+		public static const HIDE_RECORD_PANE:String="隐藏录像面板";
 		public static const START_GAME:String="开始游戏";
 		public static const BACK_TO_MENU:String="返回菜单";
-		public function GameEvent(type:String){
-			super(type);
+		public static const PLAY_RECORD:String="播放录像";
+		
+		public var data:*;
+		
+		public function GameEvent(type:String,bubbles:Boolean,cancelable:Boolean,_data:*){
+			super(type,bubbles,cancelable);
+			data=_data;
 		}
+		
 	}
 }
