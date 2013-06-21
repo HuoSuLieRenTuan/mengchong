@@ -8,10 +8,27 @@ getTileClip
 
 package busymonsters{
 	import assets.Tile;
+	import assets.Tile_multicolor;
 
-	public function getTileClip(color:int):assets.Tile{
-		return new (TileClassV[color])();
+	public function getTileClip(color:int,type:int):assets.Tile{
+		switch(type){
+			case busymonsters.Tile.TYPE_0:
+				return new (TileClass0V[color])();
+			break;
+			case busymonsters.Tile.TYPE_1:
+				return new (TileClass1V[color])();
+			break;
+			case busymonsters.Tile.TYPE_2:
+				return new (TileClass2V[color])();
+			break;
+			case busymonsters.Tile.TYPE_3:
+				return new Tile_multicolor();
+			break;
+		}
+		return null;
 	}
 }
 
-const TileClassV:Vector.<Class>=new <Class>[assets.Tile_0_0,assets.Tile_1_0,assets.Tile_2_0,assets.Tile_3_0,assets.Tile_4_0,assets.Tile_5_0];
+const TileClass0V:Vector.<Class>=new <Class>[assets.Tile_0_0,assets.Tile_1_0,assets.Tile_2_0,assets.Tile_3_0,assets.Tile_4_0,assets.Tile_5_0];
+const TileClass1V:Vector.<Class>=new <Class>[assets.Tile_0_1,assets.Tile_1_1,assets.Tile_2_1,assets.Tile_3_1,assets.Tile_4_1,assets.Tile_5_1];
+const TileClass2V:Vector.<Class>=new <Class>[assets.Tile_0_2,assets.Tile_1_2,assets.Tile_2_2,assets.Tile_3_2,assets.Tile_4_2,assets.Tile_5_2];

@@ -22,22 +22,29 @@ package busymonsters{
 	
 	public class Tile extends Sprite{
 		
+		public static const TYPE_0:int=0;//普通宝石
+		public static const TYPE_1:int=1;//火焰宝石
+		public static const TYPE_2:int=2;//闪电宝石
+		public static const TYPE_3:int=3;//超级能量宝石
+		
 		private var clip:assets.Tile;
 		
 		public var color:int;
+		public var type:int;
 		public var speed:int;
 		
 		public var x0:int;
 		public var y0:int;
 		
-		private var test_txt:TextField;
+		//private var test_txt:TextField;
 		
-		public function Tile(_color:int){
+		public function Tile(_color:int,_type:int){
 			this.buttonMode=true;
 			this.mouseChildren=false;
 			color=_color;
+			type=_type;
 			if(color>-1){
-				this.addChild(clip=getTileClip(color));
+				this.addChild(clip=getTileClip(color,type));
 			}
 			locked=false;
 			
@@ -57,9 +64,9 @@ package busymonsters{
 			//*/
 		}
 		
-		private function testing(...args):void{
-			test_txt.htmlText='<font size="8">y='+y+'\nspeed='+speed+'</font>';
-		}
+		//private function testing(...args):void{
+		//	test_txt.htmlText='<font size="8">y='+y+'\nspeed='+speed+'</font>';
+		//}
 		
 		private var __selected:Boolean;
 		public function get selected():Boolean{

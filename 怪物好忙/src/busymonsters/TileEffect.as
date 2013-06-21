@@ -23,9 +23,9 @@ package busymonsters{
 	public class TileEffect{
 		public var onComplete:Function;
 		public var clip:assets.TileEffect;
-		public function TileEffect(color:int){
+		public function TileEffect(color:int,type:int){
 			clip=new assets.TileEffect();
-			clip.container.addChild(getTileClip(color));
+			clip.container.addChild(getTileClip(color,type));
 			clip.addFrameScript(clip.totalFrames-1,clip_lastFrame);
 		}
 		public function clear():void{

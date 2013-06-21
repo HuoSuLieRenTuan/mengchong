@@ -63,13 +63,13 @@ package busymonsters{
 			
 			Random.init(
 				//Math.random()*0x100000000
-				1
+				3
 			);
 			
 			if(currColorArr){
 			}else{
 				//currColorArr=[0,1,2];
-				currColorArr=[0,1,2,3];
+				currColorArr=[1,2,3,4];
 				//currColorArr=[0,1,2,3,4,5];
 			}
 			
@@ -101,7 +101,7 @@ package busymonsters{
 				for(var x0:int=0;x0<w;x0++){
 					
 					if(x0==0||x0==w-1||y0==0||y0==h-1){
-						var tile:Tile=new Tile(-1);
+						var tile:Tile=new Tile(-1,Tile.TYPE_0);
 						tile.mouseEnabled=false;
 					}else{
 						//需要保证左边和上边没有和其连成一直线超过三个的
@@ -123,7 +123,53 @@ package busymonsters{
 							}
 							break;
 						}
-						tile=new Tile(color);
+						
+						/*
+						switch(x0+","+y0){
+							case "4,4":
+							case "4,5":
+							case "4,6":
+							case "5,5":
+							case "6,4":
+							case "6,5":
+							case "6,6":
+							case "6,7":
+							case "6,8":
+							case "7,5":
+								color=0;
+							break;
+						}
+						//*/
+						
+						/*
+						switch(x0+","+y0){
+							case "4,5":
+							case "5,5":
+							case "6,4":
+							case "6,6":
+							case "6,7":
+							case "7,5":
+								color=0;
+							break;
+						}
+						//*/
+						
+						switch(x0+","+y0){
+							case "4,4":
+							case "5,4":
+							case "6,4":
+							case "4,5":
+							//case "5,5":
+							case "6,5":
+							case "4,6":
+							case "5,6":
+							case "6,6":
+								color=0;
+							break;
+						}
+						
+						tile=new Tile(color,Tile.TYPE_0);
+						
 					}
 					
 					clip.tileArea.addChild(tile);
@@ -184,6 +230,8 @@ package busymonsters{
 				trace("record start-----------------------------");
 				recorder.record(clip.stage,recordComplete,recorder_step,recorder_mouseOver,recorder_mouseOut,recorder_mouseDown,recorder_mouseUp,recorder_mouseMove,null,null);
 			}
+			
+			checkMatch(null);
 			
 		}
 		
@@ -453,16 +501,14 @@ package busymonsters{
 			map[tile1.y0][tile1.x0]=tile1;
 			map[tile2.y0][tile2.x0]=tile2;
 			
-			var xyMark:Object=new Object();
-			xyMark[tile1.x0+","+tile1.y0]=true;
-			xyMark[tile2.x0+","+tile2.y0]=true;
-			//trace(tile1.x0,tile1.y0,tile2.x0,tile2.y0);
-			var xyArr:Array=checkMatch();
+			var justJiaohuanMark:Object=new Object();
+			justJiaohuanMark[tile1.x0+","+tile1.y0]=tile1;
+			justJiaohuanMark[tile2.x0+","+tile2.y0]=tile2;
+			var xyArr:Array=checkMatch(justJiaohuanMark);
 			if(xyArr){
-				//trace("xyArr.length="+xyArr.length);
 				for each(var xy:Array in xyArr){
-					if(xyMark[xy.toString()]){//如果交换的有一个匹配成功
-						return;
+					if(justJiaohuanMark[xy.toString()]){
+						return;//如果交换的有一个匹配成功
 					}
 				}
 			}
@@ -476,9 +522,11 @@ package busymonsters{
 			
 		}
 		
-		private function checkMatch():Array{
+		private function checkMatch(justJiaohuanMark:Object):Array{
 			var t:int=getTimer();
-			var matchArr:Array=new Array();
+			var xyMark:Object=new Object();
+			var xyArr:Array=new Array();
+			var wArrMark:Object=new Object();
 			var tile:Tile;
 			for(var y0:int=0;y0<h;y0++){
 				var x0:int=0;
@@ -487,16 +535,27 @@ package busymonsters{
 					if(tile0){
 						if(tile0.enabled&&(tile0.color>-1)){
 							var x:int=x0;
-							var arr:Array=[[x,y0]];
+							if(xyMark[x+","+y0]){
+							}else{
+								xyMark[x+","+y0]=[x,y0];
+							}
+							var arr:Array=[xyMark[x+","+y0]];
 							while(tile=map[y0][++x]){
 								if(tile.enabled&&(tile.color==tile0.color)){
-									arr.push([x,y0]);
+									if(xyMark[x+","+y0]){
+									}else{
+										xyMark[x+","+y0]=[x,y0];
+									}
+									arr.push(xyMark[x+","+y0]);
 								}else{
 									break;
 								}
 							}
 							if(arr.length>=3){
-								matchArr.push(arr);
+								for each(var xy:Array in arr){
+									xyArr.push(xy);
+									wArrMark[xy.toString()]=arr;
+								}
 							}
 							x0+=arr.length;
 						}else{
@@ -508,6 +567,7 @@ package busymonsters{
 					
 				}
 			}
+			var hArrMark:Object=new Object();
 			for(x0=0;x0<w;x0++){
 				y0=0;
 				while(y0<h){
@@ -515,16 +575,27 @@ package busymonsters{
 					if(tile0){
 						if(tile0.enabled&&(tile0.color>-1)){
 							var y:int=y0;
-							arr=[[x0,y]];
+							if(xyMark[x0+","+y]){
+							}else{
+								xyMark[x0+","+y]=[x0,y];
+							}
+							arr=[xyMark[x0+","+y]];
 							while(tile=map[++y][x0]){
 								if(tile.enabled&&(tile.color==tile0.color)){
-									arr.push([x0,y]);
+									if(xyMark[x0+","+y]){
+									}else{
+										xyMark[x0+","+y]=[x0,y];
+									}
+									arr.push(xyMark[x0+","+y]);
 								}else{
 									break;
 								}
 							}
 							if(arr.length>=3){
-								matchArr.push(arr);
+								for each(xy in arr){
+									xyArr.push(xy);
+									hArrMark[xy.toString()]=arr;
+								}
 							}
 							y0+=arr.length;
 						}else{
@@ -538,43 +609,112 @@ package busymonsters{
 			}
 			outputMsg("检测匹配耗时 "+(getTimer()-t)+" 毫秒。");
 			
-			//trace("matchArr="+matchArr);
-			if(matchArr.length){
+			if(xyArr.length){
+				
+				//trace("xyArr="+xyArr);
+				
 				var tileEffectArr:Array=new Array();
-				var xyArr:Array=new Array();
-				var xyMark:Object=new Object();
-				for each(arr in matchArr){
-					for each(var xy:Array in arr){
-						if(xyMark[xy.toString()]){
-						}else{
-							xyMark[xy.toString()]=true;
-							xyArr.push(xy);
-							x=xy[0];
-							y=xy[1];
-							tile=map[y][x];
-							if(selectedTile){
-								if(selectedTile==tile){
-									selectedClip.visible=false;
-									selectedTile=null;
-								}
-							}
-							
-							//tile.locked=true;
-							//tile.visible=false;
-							
-							var tileEffect:TileEffect=new TileEffect(tile.color);
-							
-							clip.tileArea.removeChild(tile);
-							map[y][x]=null;
-							
-							clip.effectArea.addChild(tileEffect.clip);
-							tileEffectArr.push(tileEffect);
-							tileEffect.clip.x=x*d;
-							tileEffect.clip.y=y*d;
+				for each(xy in xyArr){
+					x0=xy[0];
+					y0=xy[1];
+					
+					tile0=map[y0][x0];
+					var color:int=tile0.color;
+					var type:int=tile0.type;
+					if(selectedTile){
+						if(selectedTile==tile0){
+							selectedClip.visible=false;
+							selectedTile=null;
 						}
 					}
-				}//end of for each(arr in matchArr)...
+					//tile0.locked=true;
+					//tile0.visible=false;
+					clip.tileArea.removeChild(tile0);
+					tile0=null;
+					map[y0][x0]=null;
 					
+					var wArr:Array=wArrMark[xy.toString()];
+					var hArr:Array=hArrMark[xy.toString()];
+					
+					//trace("("+xy+")","["+wArr+"]","["+hArr+"]");
+					
+					var newTileV:Vector.<Tile>=new Vector.<Tile>();
+					if(wArr){
+						if(wArr.length>=5){
+							if(wArr.indexOf(xy)==int(wArr.length/2)){
+								newTileV.push(new Tile(color,Tile.TYPE_3));
+							}
+						}else if(wArr.length==4){
+							var newTileXY:Array=null;
+							if(justJiaohuanMark){
+								for each(var _xy:Array in wArr){
+									if(justJiaohuanMark[_xy.toString()]){
+										newTileXY=_xy;
+										break;
+									}
+								}
+							}
+							if(newTileXY){
+							}else{
+								if(wArr.indexOf(xy)==1){
+									newTileXY=xy;
+								}
+							}
+							if(newTileXY==xy){
+								newTileV.push(new Tile(color,Tile.TYPE_1));
+							}
+						}
+					}
+					if(hArr){
+						if(hArr.length>=5){
+							if(hArr.indexOf(xy)==int(hArr.length/2)){
+								newTileV.push(new Tile(color,Tile.TYPE_3));
+							}
+						}else if(hArr.length==4){
+							newTileXY=null;
+							if(justJiaohuanMark){
+								for each(_xy in hArr){
+									if(justJiaohuanMark[_xy.toString()]){
+										newTileXY=_xy;
+										break;
+									}
+								}
+							}
+							if(newTileXY){
+							}else{
+								if(hArr.indexOf(xy)==1){
+									newTileXY=xy;
+								}
+							}
+							if(newTileXY==xy){
+								newTileV.push(new Tile(color,Tile.TYPE_1));
+							}
+						}
+					}
+					if(wArr&&hArr){
+						newTileV.push(new Tile(color,Tile.TYPE_2));
+					}
+					
+					if(newTileV.length){
+						for each(var newTile:Tile in newTileV){
+							clip.tileArea.addChild(newTile);
+							map[y0][x0]=newTile;
+							newTile.x0=x0;
+							newTile.y0=y0;
+							newTile.x=x0*d;
+							newTile.y=y0*d;
+						}
+					}
+					
+					var tileEffect:TileEffect=new TileEffect(color,type);
+					
+					clip.effectArea.addChild(tileEffect.clip);
+					tileEffectArr.push(tileEffect);
+					tileEffect.clip.x=x0*d;
+					tileEffect.clip.y=y0*d;
+					
+				}
+				
 				Xiaochu.add(tileEffectArr,xyArr,xiaochuComplete);
 				
 				checkFalling();
@@ -658,7 +798,7 @@ package busymonsters{
 			for(x0=0;x0<w;x0++){
 				if(mark[x0+",1"]){
 				}else if(numByX0Arr[x0]<h){
-					var tile:Tile=new Tile(currColorArr[Random.ranInt(currColorArr.length)]);
+					var tile:Tile=new Tile(currColorArr[Random.ranInt(currColorArr.length)],Tile.TYPE_0);
 					clip.tileArea.addChild(tile);
 					tile.x0=x0;
 					tile.y0=1;
@@ -748,7 +888,7 @@ package busymonsters{
 			if(fallingTileV.length){
 			}else{
 				clip.removeEventListener(Event.ENTER_FRAME,falling);
-				checkMatch();
+				checkMatch(null);
 			}
 			
 		}
