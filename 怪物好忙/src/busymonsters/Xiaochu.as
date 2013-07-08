@@ -30,13 +30,12 @@ package busymonsters{
 			xiaochuV.length=0;
 		}
 		
-		public static function add(tileEffectArr:Array,xyArr:Array,onComplete:Function):Xiaochu{
+		public static function add(tileEffectArr:Array,onComplete:Function):Xiaochu{
 			
 			var xiaochu:Xiaochu=new Xiaochu();
 			xiaochu.num=tileEffectArr.length;
 			xiaochu.onComplete=onComplete;
 			xiaochu.tileEffectArr=tileEffectArr;
-			xiaochu.xyArr=xyArr;
 			
 			for each(var tileEffect:TileEffect in tileEffectArr){
 				tileEffect.onComplete=xiaochu.complete;
@@ -50,7 +49,6 @@ package busymonsters{
 			
 			var onComplete:Function=xiaochu.onComplete;
 			var tileEffectArr:Array=xiaochu.tileEffectArr;
-			var xyArr:Array=xiaochu.xyArr;
 			
 			xiaochu.clear();
 			
@@ -58,7 +56,7 @@ package busymonsters{
 			
 			if(onComplete==null){
 			}else{
-				onComplete(tileEffectArr,xyArr);
+				onComplete(tileEffectArr);
 			}
 			
 		}
@@ -66,7 +64,6 @@ package busymonsters{
 		private var num:int;
 		private var onComplete:Function;
 		private var tileEffectArr:Array;
-		private var xyArr:Array;
 		private function complete():void{
 			if(--num<=0){
 				Xiaochu.complete(this);
@@ -75,7 +72,6 @@ package busymonsters{
 		private function clear():void{
 			onComplete=null;
 			tileEffectArr=null;
-			xyArr=null;
 		}
 	}
 }

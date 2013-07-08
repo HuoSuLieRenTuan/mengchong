@@ -22,10 +22,26 @@ package busymonsters{
 	
 	public class Tile extends Sprite{
 		
-		public static const TYPE_0:int=0;//普通宝石
-		public static const TYPE_1:int=1;//火焰宝石
-		public static const TYPE_2:int=2;//闪电宝石
-		public static const TYPE_3:int=3;//超级能量宝石
+		/**
+		 *普通宝石 
+		 */		
+		public static const TYPE_0:int=0;
+		
+		/**
+		 *火焰宝石 
+		 */		
+		public static const TYPE_1:int=1;
+		
+		/**
+		 *闪电宝石 
+		 */		
+		public static const TYPE_2:int=2;
+		
+		/**
+		 *超级能量宝石 
+		 */		
+		public static const TYPE_3:int=3;
+		
 		
 		private var clip:assets.Tile;
 		

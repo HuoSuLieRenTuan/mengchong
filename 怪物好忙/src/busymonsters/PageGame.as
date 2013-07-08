@@ -77,22 +77,6 @@ package busymonsters{
 			w=8+2;
 			h=8+2;
 			
-			/*
-			xxxxxxxxxxxx
-			xoooooooooox
-			xoooooooooox
-			xoooooooooox
-			xoooooooooox
-			xoooooooooox
-			xoooooooooox
-			xoooooooooox
-			xoooooooooox
-			xoooooooooox
-			xoooooooooox
-			xxxxxxxxxxxx
-			*/
-			
-			var t:int=getTimer();
 			//从上到下，从左到右生成初始地图（初始地图不能有自动消除的）
 			map=new Array(h);
 			fallingTileV=new Vector.<Tile>();
@@ -154,12 +138,13 @@ package busymonsters{
 						}
 						//*/
 						
+						/*
 						switch(x0+","+y0){
 							case "4,4":
 							case "5,4":
 							case "6,4":
 							case "4,5":
-							//case "5,5":
+							case "5,5":
 							case "6,5":
 							case "4,6":
 							case "5,6":
@@ -167,6 +152,7 @@ package busymonsters{
 								color=0;
 							break;
 						}
+						//*/
 						
 						tile=new Tile(color,Tile.TYPE_0);
 						
@@ -181,7 +167,6 @@ package busymonsters{
 					
 				}
 			}
-			outputMsg("生成地图耗时："+(getTimer()-t)+"毫秒。");
 			
 			/*
 			//测试个别下落
@@ -501,11 +486,11 @@ package busymonsters{
 			map[tile1.y0][tile1.x0]=tile1;
 			map[tile2.y0][tile2.x0]=tile2;
 			
-			var justJiaohuanMark:Object=new Object();
-			justJiaohuanMark[tile1.x0+","+tile1.y0]=tile1;
-			justJiaohuanMark[tile2.x0+","+tile2.y0]=tile2;
-			var xyArr:Array=checkMatch(justJiaohuanMark);
+			var xyArr:Array=checkMatch([tile1,tile2]);
 			if(xyArr){
+				var justJiaohuanMark:Object=new Object();
+				justJiaohuanMark[tile1.x0+","+tile1.y0]=tile1;
+				justJiaohuanMark[tile2.x0+","+tile2.y0]=tile2;
 				for each(var xy:Array in xyArr){
 					if(justJiaohuanMark[xy.toString()]){
 						return;//如果交换的有一个匹配成功
@@ -522,204 +507,484 @@ package busymonsters{
 			
 		}
 		
-		private function checkMatch(justJiaohuanMark:Object):Array{
-			var t:int=getTimer();
-			var xyMark:Object=new Object();
-			var xyArr:Array=new Array();
-			var wArrMark:Object=new Object();
-			var tile:Tile;
-			for(var y0:int=0;y0<h;y0++){
-				var x0:int=0;
-				while(x0<w){
-					var tile0:Tile=map[y0][x0];
-					if(tile0){
-						if(tile0.enabled&&(tile0.color>-1)){
-							var x:int=x0;
-							if(xyMark[x+","+y0]){
-							}else{
-								xyMark[x+","+y0]=[x,y0];
+		private function checkMatch(justJiaohuanTileArr:Array):Array{
+			
+			if(justJiaohuanTileArr){
+				var justJiaohuanMark:Object=new Object();
+				justJiaohuanMark[justJiaohuanTileArr[0].x0+","+justJiaohuanTileArr[0].y0]=justJiaohuanTileArr[0];
+				justJiaohuanMark[justJiaohuanTileArr[1].x0+","+justJiaohuanTileArr[1].y0]=justJiaohuanTileArr[1];
+			}
+			
+			if(justJiaohuanTileArr){
+				if(
+					justJiaohuanTileArr[0].type==Tile.TYPE_3
+					&&
+					justJiaohuanTileArr[1].type==Tile.TYPE_3
+				){
+					var xyArr:Array=new Array();
+					for(var y0:int=0;y0<h;y0++){
+						for(var x0:int=0;x0<w;x0++){
+							var tile0:Tile=map[y0][x0];
+							if(tile0){
+								if(tile0.enabled&&(tile0.color>-1)){
+									xyArr.push([x0,y0]);
+								}
 							}
-							var arr:Array=[xyMark[x+","+y0]];
-							while(tile=map[y0][++x]){
-								if(tile.enabled&&(tile.color==tile0.color)){
-									if(xyMark[x+","+y0]){
-									}else{
-										xyMark[x+","+y0]=[x,y0];
+						}
+					}
+				}else if(
+					justJiaohuanTileArr[0].type==Tile.TYPE_3
+					||
+					justJiaohuanTileArr[1].type==Tile.TYPE_3
+				){
+					if(justJiaohuanTileArr[0].type==Tile.TYPE_3){
+						xyArr=[[justJiaohuanTileArr[0].x0,justJiaohuanTileArr[0].y0]];
+						var color:int=justJiaohuanTileArr[1].color;
+					}else{
+						xyArr=[[justJiaohuanTileArr[1].x0,justJiaohuanTileArr[1].y0]];
+						color=justJiaohuanTileArr[0].color;
+					}
+					for(y0=0;y0<h;y0++){
+						for(x0=0;x0<w;x0++){
+							tile0=map[y0][x0];
+							if(tile0){
+								if(tile0.enabled&&(tile0.color>-1)){
+									if(tile0.color==color){
+										xyArr.push([x0,y0]);
 									}
-									arr.push(xyMark[x+","+y0]);
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			if(xyArr){
+			}else{
+			
+				var xyMark:Object=new Object();
+				xyArr=new Array();
+				var wArrMark:Object=new Object();
+				var tile:Tile;
+				for(y0=0;y0<h;y0++){
+					x0=0;
+					while(x0<w){
+						tile0=map[y0][x0];
+						if(tile0){
+							if(tile0.enabled&&(tile0.color>-1)){
+								var x:int=x0;
+								if(xyMark[x+","+y0]){
 								}else{
-									break;
+									xyMark[x+","+y0]=[x,y0];
 								}
-							}
-							if(arr.length>=3){
-								for each(var xy:Array in arr){
-									xyArr.push(xy);
-									wArrMark[xy.toString()]=arr;
+								var arr:Array=[xyMark[x+","+y0]];
+								while(tile=map[y0][++x]){
+									if(tile.enabled&&(tile.color==tile0.color)){
+										if(xyMark[x+","+y0]){
+										}else{
+											xyMark[x+","+y0]=[x,y0];
+										}
+										arr.push(xyMark[x+","+y0]);
+									}else{
+										break;
+									}
 								}
+								if(arr.length>=3){
+									for each(var xy:Array in arr){
+										if(xyArr.indexOf(xy)>-1){
+										}else{
+											xyArr.push(xy);
+										}
+										wArrMark[xy.toString()]=arr;
+									}
+								}
+								x0+=arr.length;
+							}else{
+								x0++;
 							}
-							x0+=arr.length;
 						}else{
 							x0++;
 						}
-					}else{
-						x0++;
+						
 					}
-					
 				}
-			}
-			var hArrMark:Object=new Object();
-			for(x0=0;x0<w;x0++){
-				y0=0;
-				while(y0<h){
-					tile0=map[y0][x0];
-					if(tile0){
-						if(tile0.enabled&&(tile0.color>-1)){
-							var y:int=y0;
-							if(xyMark[x0+","+y]){
-							}else{
-								xyMark[x0+","+y]=[x0,y];
-							}
-							arr=[xyMark[x0+","+y]];
-							while(tile=map[++y][x0]){
-								if(tile.enabled&&(tile.color==tile0.color)){
-									if(xyMark[x0+","+y]){
-									}else{
-										xyMark[x0+","+y]=[x0,y];
-									}
-									arr.push(xyMark[x0+","+y]);
+				var hArrMark:Object=new Object();
+				for(x0=0;x0<w;x0++){
+					y0=0;
+					while(y0<h){
+						tile0=map[y0][x0];
+						if(tile0){
+							if(tile0.enabled&&(tile0.color>-1)){
+								var y:int=y0;
+								if(xyMark[x0+","+y]){
 								}else{
-									break;
+									xyMark[x0+","+y]=[x0,y];
 								}
-							}
-							if(arr.length>=3){
-								for each(xy in arr){
-									xyArr.push(xy);
-									hArrMark[xy.toString()]=arr;
+								arr=[xyMark[x0+","+y]];
+								while(tile=map[++y][x0]){
+									if(tile.enabled&&(tile.color==tile0.color)){
+										if(xyMark[x0+","+y]){
+										}else{
+											xyMark[x0+","+y]=[x0,y];
+										}
+										arr.push(xyMark[x0+","+y]);
+									}else{
+										break;
+									}
 								}
+								if(arr.length>=3){
+									for each(xy in arr){
+										if(xyArr.indexOf(xy)>-1){
+										}else{
+											xyArr.push(xy);
+										}
+										hArrMark[xy.toString()]=arr;
+									}
+								}
+								y0+=arr.length;
+							}else{
+								y0++;
 							}
-							y0+=arr.length;
 						}else{
 							y0++;
 						}
-					}else{
-						y0++;
+						
 					}
-					
 				}
 			}
-			outputMsg("检测匹配耗时 "+(getTimer()-t)+" 毫秒。");
 			
 			if(xyArr.length){
-				
+				var xyArrCopy:Array=xyArr.slice();
 				//trace("xyArr="+xyArr);
 				
-				var tileEffectArr:Array=new Array();
-				for each(xy in xyArr){
-					x0=xy[0];
-					y0=xy[1];
-					
-					tile0=map[y0][x0];
-					var color:int=tile0.color;
-					var type:int=tile0.type;
-					if(selectedTile){
-						if(selectedTile==tile0){
-							selectedClip.visible=false;
-							selectedTile=null;
-						}
+				var newTileV:Vector.<Tile>=new Vector.<Tile>();
+				
+				var currCheckingType:int=Tile.TYPE_3;
+				if(justJiaohuanTileArr){
+					if(
+						justJiaohuanTileArr[0].type==Tile.TYPE_3
+						||
+						justJiaohuanTileArr[1].type==Tile.TYPE_3
+					){
+						currCheckingType=Tile.TYPE_0;
 					}
-					//tile0.locked=true;
-					//tile0.visible=false;
-					clip.tileArea.removeChild(tile0);
-					tile0=null;
-					map[y0][x0]=null;
-					
-					var wArr:Array=wArrMark[xy.toString()];
-					var hArr:Array=hArrMark[xy.toString()];
-					
-					//trace("("+xy+")","["+wArr+"]","["+hArr+"]");
-					
-					var newTileV:Vector.<Tile>=new Vector.<Tile>();
-					if(wArr){
-						if(wArr.length>=5){
-							if(wArr.indexOf(xy)==int(wArr.length/2)){
-								newTileV.push(new Tile(color,Tile.TYPE_3));
-							}
-						}else if(wArr.length==4){
-							var newTileXY:Array=null;
-							if(justJiaohuanMark){
-								for each(var _xy:Array in wArr){
-									if(justJiaohuanMark[_xy.toString()]){
-										newTileXY=_xy;
-										break;
-									}
-								}
-							}
-							if(newTileXY){
-							}else{
-								if(wArr.indexOf(xy)==1){
-									newTileXY=xy;
-								}
-							}
-							if(newTileXY==xy){
-								newTileV.push(new Tile(color,Tile.TYPE_1));
-							}
-						}
-					}
-					if(hArr){
-						if(hArr.length>=5){
-							if(hArr.indexOf(xy)==int(hArr.length/2)){
-								newTileV.push(new Tile(color,Tile.TYPE_3));
-							}
-						}else if(hArr.length==4){
-							newTileXY=null;
-							if(justJiaohuanMark){
-								for each(_xy in hArr){
-									if(justJiaohuanMark[_xy.toString()]){
-										newTileXY=_xy;
-										break;
-									}
-								}
-							}
-							if(newTileXY){
-							}else{
-								if(hArr.indexOf(xy)==1){
-									newTileXY=xy;
-								}
-							}
-							if(newTileXY==xy){
-								newTileV.push(new Tile(color,Tile.TYPE_1));
-							}
-						}
-					}
-					if(wArr&&hArr){
-						newTileV.push(new Tile(color,Tile.TYPE_2));
-					}
-					
-					if(newTileV.length){
-						for each(var newTile:Tile in newTileV){
-							clip.tileArea.addChild(newTile);
-							map[y0][x0]=newTile;
-							newTile.x0=x0;
-							newTile.y0=y0;
-							newTile.x=x0*d;
-							newTile.y=y0*d;
-						}
-					}
-					
-					var tileEffect:TileEffect=new TileEffect(color,type);
-					
-					clip.effectArea.addChild(tileEffect.clip);
-					tileEffectArr.push(tileEffect);
-					tileEffect.clip.x=x0*d;
-					tileEffect.clip.y=y0*d;
-					
 				}
 				
-				Xiaochu.add(tileEffectArr,xyArr,xiaochuComplete);
+				var tileEffectArr:Array=new Array();
+				var specialXYTypeArr:Array=new Array();
+				
+				while(xyArr.length){
+					
+					//trace("xyArr.length="+xyArr.length);
+					//trace("currCheckingType="+currCheckingType);
+					
+					var xyId:int=xyArr.length;
+					
+					while(--xyId>=0){
+						
+						xy=xyArr[xyId];
+						
+						x0=xy[0];
+						y0=xy[1];
+						
+						tile0=map[y0][x0];
+						
+						if(tile0){
+						}else{
+							continue;
+						}
+						
+						color=tile0.color;
+						var type:int=tile0.type;
+						
+						if(currCheckingType==Tile.TYPE_0){
+							var wArr:Array=null;
+							var hArr:Array=null;
+						}else{
+							wArr=wArrMark[xy.toString()];
+							hArr=hArrMark[xy.toString()];
+						}
+						
+						var newTile:Tile=null;
+						switch(currCheckingType){
+							case Tile.TYPE_3:
+								if(wArr){
+									if(wArr.length>=5){
+										if(wArr.indexOf(xy)==int(wArr.length/2)){
+											newTile=new Tile(12345,Tile.TYPE_3);
+											xyArr.splice(xyId,1);
+											wArr.splice(wArr.indexOf(xy),1);
+											wArr.length=0;
+											wArrMark[xy.toString()]=null;
+										}
+									}
+								}
+								if(newTile){
+									if(hArr){
+										hArr.splice(hArr.indexOf(xy),1);
+									}
+								}else{
+									if(hArr){
+										if(hArr.length>=5){
+											if(hArr.indexOf(xy)==int(hArr.length/2)){
+												newTile=new Tile(12345,Tile.TYPE_3);
+												xyArr.splice(xyId,1);
+												hArr.splice(hArr.indexOf(xy),1);
+												hArr.length=0;
+												hArrMark[xy.toString()]=null;
+											}
+										}
+									}
+								}
+							break;
+							case Tile.TYPE_2:
+								if(wArr&&hArr){
+									if(wArr.length>=3&&hArr.length>=3){
+										newTile=new Tile(color,Tile.TYPE_2);
+										xyArr.splice(xyId,1);
+										wArr.length=0;
+										wArrMark[xy.toString()]=null;
+										hArr.length=0;
+										hArrMark[xy.toString()]=null;
+									}
+								}
+							break;
+							case Tile.TYPE_1:
+								if(wArr){
+									if(wArr.length>=4){
+										var newTileXY:Array=null;
+										if(justJiaohuanMark){
+											for each(var _xy:Array in wArr){
+												if(justJiaohuanMark[_xy.toString()]){
+													newTileXY=_xy;
+													break;
+												}
+											}
+										}
+										if(newTileXY){
+										}else{
+											if(wArr.indexOf(xy)==1){
+												newTileXY=xy;
+											}
+										}
+										if(newTileXY==xy){
+											newTile=new Tile(color,Tile.TYPE_1);
+											xyArr.splice(xyId,1);
+											wArr.length=0;
+											wArrMark[xy.toString()]=null;
+										}
+									}
+								}
+								if(newTile){
+									if(hArr){
+										hArr.splice(hArr.indexOf(xy),1);
+									}
+								}else{
+									if(hArr){
+										if(hArr.length>=4){
+											newTileXY=null;
+											if(justJiaohuanMark){
+												for each(_xy in hArr){
+													if(justJiaohuanMark[_xy.toString()]){
+														newTileXY=_xy;
+														break;
+													}
+												}
+											}
+											if(newTileXY){
+											}else{
+												if(hArr.indexOf(xy)==1){
+													newTileXY=xy;
+												}
+											}
+											if(newTileXY==xy){
+												newTile=new Tile(color,Tile.TYPE_1);
+												xyArr.splice(xyId,1);
+												hArr.length=0;
+												hArrMark[xy.toString()]=null;
+											}
+										}
+									}
+								}
+							break;
+							default:
+								xyArr.splice(xyId,1);
+								if(wArr){
+									wArr.length=0;
+									wArrMark[xy.toString()]=null;
+								}
+								if(hArr){
+									hArr.length=0;
+									hArrMark[xy.toString()]=null;
+								}
+							break;
+						}
+						
+						if(newTile||currCheckingType==Tile.TYPE_0){
+						}else{
+							continue;
+						}
+						
+						switch(type){
+							case Tile.TYPE_2:
+							case Tile.TYPE_1:
+								specialXYTypeArr.push([x0,y0,color,type]);
+							break;
+						}
+						
+						//trace(x0,y0,currCheckingType,"tile0="+tile0);
+						if(selectedTile){
+							if(selectedTile==tile0){
+								selectedClip.visible=false;
+								selectedTile=null;
+							}
+						}
+						//tile0.locked=true;
+						//tile0.visible=false;
+						clip.tileArea.removeChild(tile0);
+						tile0=null;
+						map[y0][x0]=null;
+						
+						if(newTile){
+							newTile.x0=x0;
+							newTile.y0=y0;
+							newTileV.push(newTile);
+						}
+						
+						var tileEffect:TileEffect=new TileEffect(color,type);
+						
+						clip.effectArea.addChild(tileEffect.clip);
+						tileEffectArr.push(tileEffect);
+						tileEffect.clip.x=x0*d;
+						tileEffect.clip.y=y0*d;
+						
+					}
+					
+					switch(currCheckingType){
+						case Tile.TYPE_3:
+							currCheckingType=Tile.TYPE_2;
+						break;
+						case Tile.TYPE_2:
+							currCheckingType=Tile.TYPE_1;
+						break;
+						case Tile.TYPE_1:
+							currCheckingType=Tile.TYPE_0;
+						break;
+						default:
+							if(specialXYTypeArr.length){
+								currCheckingType=Tile.TYPE_0;
+								xyMark=new Object();
+								xyArr=new Array();
+								for each(var specialXYType:Array in specialXYTypeArr){
+									x0=specialXYType[0];
+									y0=specialXYType[1];
+									color=specialXYType[2];
+									type=specialXYType[3];
+									var hasType3:Boolean=false;
+									switch(type){
+										case Tile.TYPE_1:
+											for(var dy:int=-1;dy<=1;dy++){
+												for(var dx:int=-1;dx<=1;dx++){
+													if(dx||dy){
+														x=x0+dx;
+														y=y0+dy;
+														tile=map[y][x];
+														if(tile){
+															if(tile.enabled&&(tile.color>-1)){
+																if(xyMark[x+","+y]){
+																}else{
+																	xyMark[x+","+y]=[x,y];
+																	xyArr.push(xyMark[x+","+y]);
+																}
+																if(tile.type==Tile.TYPE_3){
+																	hasType3=true;
+																}
+															}
+														}
+													}
+												}
+											}
+										break;
+										case Tile.TYPE_2:
+											for(x=0;x<w;x++){
+												tile=map[y0][x];
+												if(tile){
+													if(tile.enabled&&(tile.color>-1)){
+														if(xyMark[x+","+y0]){
+														}else{
+															xyMark[x+","+y0]=[x,y0];
+															xyArr.push(xyMark[x+","+y0]);
+														}
+														if(tile.type==Tile.TYPE_3){
+															hasType3=true;
+														}
+													}
+												}
+											}
+											for(y=0;y<h;y++){
+												tile=map[y][x0];
+												if(tile){
+													if(tile.enabled&&(tile.color>-1)){
+														if(xyMark[x0+","+y]){
+														}else{
+															xyMark[x0+","+y]=[x0,y];
+															xyArr.push(xyMark[x0+","+y]);
+														}
+														if(tile.type==Tile.TYPE_3){
+															hasType3=true;
+														}
+													}
+												}
+											}
+										break;
+									}
+									if(hasType3){
+										for(y0=0;y0<h;y0++){
+											for(x0=0;x0<w;x0++){
+												tile0=map[y0][x0];
+												if(tile0){
+													if(tile0.enabled&&(tile0.color>-1)){
+														if(tile0.color==color){
+															if(xyMark[x0+","+y0]){
+															}else{
+																xyMark[x0+","+y0]=[x0,y0];
+																xyArr.push(xyMark[x0+","+y0]);
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}else{
+								currCheckingType=-1;
+							}
+						break;
+					}
+					
+					if(currCheckingType==-1){
+						break;
+					}
+					
+				}//end of while(xyArr.length)...
+				
+				//trace("xyArr.length="+xyArr.length);
+				
+				//trace("tileEffectArr.length="+tileEffectArr.length);
+				
+				Xiaochu.add(tileEffectArr,xiaochuComplete);
+				
+				for each(newTile in newTileV){
+					clip.tileArea.addChild(newTile);
+					map[newTile.y0][newTile.x0]=newTile;
+					newTile.x=newTile.x0*d;
+					newTile.y=newTile.y0*d;
+				}
 				
 				checkFalling();
 				
-				return xyArr;
+				return xyArrCopy;
 				
 			}//end of if(matchArr.length)...
 			
@@ -727,13 +992,12 @@ package busymonsters{
 			
 		}
 		
-		private function xiaochuComplete(tileEffectArr:Array,xyArr:Array):void{
+		private function xiaochuComplete(tileEffectArr:Array):void{
 			//删除完毕
 			for each(var tileEffect:TileEffect in tileEffectArr){
 				clip.effectArea.removeChild(tileEffect.clip);
 				tileEffect.clear();
 			}
-			//trace("xyArr="+xyArr);
 		}
 		
 		private function checkFalling():void{

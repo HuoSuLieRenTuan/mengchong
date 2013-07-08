@@ -51,6 +51,7 @@ package busymonsters{
 			clip.visible=true;
 			var settingXML:XML=sol.getSettingXML("当前");
 			if(settingXML){
+				trace(settingXML.parent().toXMLString());
 				var output:String="";
 				var i:int=-1;
 				for each(var childXML:XML in settingXML.children()){

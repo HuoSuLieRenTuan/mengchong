@@ -26,6 +26,7 @@ package{
 	import flash.ui.*;
 	import flash.utils.*;
 	
+	import zero.BytesAndStr16;
 	import zero.ui.Sol;
 	
 	public class BusyMonsters extends Sprite{
@@ -48,6 +49,12 @@ package{
 			trace("录像可生成在线地址，gif等。");
 			
 			this.addEventListener(Event.ENTER_FRAME,enterFrame);
+			
+			//var b:ByteArray=new ByteArray();
+			//b.writeInt(0x12345678);
+			//trace(zero.BytesAndStr16.bytes2str16(b,0,b.length));
+			//trace(new ByteArray().endian);
+			//trace(0x01000000/1024/1024);
 		}
 		
 		private function enterFrame(...args):void{
@@ -74,7 +81,7 @@ package{
 			if(outputTxt){
 				outputTxt.text="";
 			}
-			outputMsg("0.0.002");
+			outputMsg("0.0.003");
 			outputMsg("点击可清除。");
 		}
 		private function _outputMsg(msg:String,...args):void{
@@ -99,7 +106,8 @@ package{
 			stage.align=StageAlign.TOP_LEFT;
 			stage.scaleMode=StageScaleMode.NO_SCALE;
 			
-			sol=new Sol("BusyMonsters","2013年06月06日 09:44:47");
+			//sol=new Sol("BusyMonsters","2013年06月06日 09:44:47");
+			sol=new Sol("BusyMonsters","2013年06月26日 16:27:00");
 			
 			this.addChildAt(main=new Main(),0);
 			
